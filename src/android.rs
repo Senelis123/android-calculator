@@ -262,8 +262,8 @@ fn effect(fx: Effect, app: &mut App, j: Jvm, tx: &Sender<Msg>, wake: &Arc<dyn Fn
                     crate::market::MarketKind::Stocks => {
                         let mut out = Vec::new();
                         for (symbol, _, _) in crate::market::STOCKS {
-                            if let Some(body) = j.run(|env, _| http_get(env, &crate::market::stock_url(symbol))).flatten() {
-                                if let Some(q) = crate::market::parse_stock(&body, symbol) {
+                            if let Some(body) = j.run(|env, _| http_get(env, &crate::market::stock_url(*symbol))).flatten() {
+                                if let Some(q) = crate::market::parse_stock(&body, *symbol) {
                                     out.push(q);
                                 }
                             }
