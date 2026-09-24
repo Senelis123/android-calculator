@@ -3,6 +3,7 @@
 use crate::convert::{self, Rates, CATEGORIES, CURRENCY_CAT};
 use crate::draw::{Canvas, Fonts, Rect, Rgb};
 use crate::expr::{self, display_num, display_tokens, plain, Evaluator, SolveError, Tok};
+use crate::market::{self, MarketKind, Quote};
 use serde::{Deserialize, Serialize};
 
 pub const VERSION: &str = include_str!("../VERSION");
@@ -64,7 +65,7 @@ impl Default for Saved {
 // ---------------- runtime state ----------------
 
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub enum Screen { Calc, History, Vat, Converter, PickUnit { from: bool }, Settings, Photo, Gallery, Tools, Tool, Graph, Ask }
+pub enum Screen { Calc, History, Vat, Converter, PickUnit { from: bool }, Settings, Photo, Gallery, Tools, Tool, Markets, Graph, Ask }
 
 pub enum PhotoState {
     Idle,
@@ -118,12 +119,14 @@ pub enum Action {
     Pin(usize),
     DeleteHistory(usize),
     HwKey(char),
+    MarketKind(MarketKind),
+    MarketRefresh,
     None,
 }
 
 /// Side effects the platform layer performs.
 #[derive(Debug, Clone, PartialEq)]
-pub enum Effect { Floating, BgCheck(bool), Listen, Solve(String, bool), NanoStatus, ReportBug, SetIcon(u8), Click, Keyboard(bool), Share(String), SaveFile(String, String), Speak(String), Vibrate, Copy(String), RequestPaste, Save, FetchRates, FetchRateHistory, CheckUpdate, UpdateTap, TakePhoto, OpenGallery, LoadGallery(i64) }
+pub enum Effect { Floating, BgCheck(bool), Listen, Solve(String, bool), NanoStatus, ReportBug, SetIcon(u8), Click, Keyboard(bool), Share(String), SaveFile(String, String), Speak(String), Vibrate, Copy(String), RequestPaste, Save, FetchRates, FetchRateHistory, FetchMarkets(MarketKind), CheckUpdate, UpdateTap, TakePhoto, OpenGallery, LoadGallery(i64) }
 
 pub struct App {
     pub s: Saved,
@@ -166,6 +169,9 @@ pub struct App {
     pub whats_new: bool,
     pub crash: Option<String>, // error text from the last crash, shown once on start
     pub rate_hist: Option<(String, String, Vec<(String, f64)>)>,
+    pub market_kind: MarketKind,
+    pub market_quotes: Vec<Quote>,
+    pub market_status: String,
 }
 
 impl Default for App { fn default() -> Self { Self::new(Saved::default()) } }
@@ -182,7 +188,7 @@ impl App {
         s.conv_cat = s.conv_cat.min(CATEGORIES.len() - 1);
         let a = App { s, tokens: vec![], just_evaluated: false, result: None, screen: Screen::Calc, scroll: 0.0, content_h: 0.0,
             popup: false, banner: None, toast: None, system_dark: false, system_lang: 0, photo: PhotoState::Idle, gallery: vec![],
-            gallery_status: String::new(), rates_status: String::new(), cursor: None, undo: vec![], redo: vec![], show_frac: false, sci_page: 0, tool: 0, tool_mode: 0, fields: vec![], focus: 0, list: vec![], seed: 0x9E3779B97F4A7C15, graph_span: 10.0, rate_hist: None, text_target: None, search: String::new(), ask_text: String::new(), ask_out: None, ask_status: String::new(), nano: String::new(), restore_pending: false, system_accent: None, system_font: 1.0, whats_new: false, crash: None };
+            gallery_status: String::new(), rates_status: String::new(), cursor: None, undo: vec![], redo: vec![], show_frac: false, sci_page: 0, tool: 0, tool_mode: 0, fields: vec![], focus: 0, list: vec![], seed: 0x9E3779B97F4A7C15, graph_span: 10.0, market_kind: MarketKind::Crypto, market_quotes: vec![], market_status: String::new(), rate_hist: None, text_target: None, search: String::new(), ask_text: String::new(), ask_out: None, ask_status: String::new(), nano: String::new(), restore_pending: false, system_accent: None, system_font: 1.0, whats_new: false, crash: None };
         a.apply_lang();
         a.apply_format();
         let mut a = a;
@@ -452,10 +458,11 @@ impl App {
                     self.graph_span = if trig && self.s.degrees { 360.0 } else { 10.0 };
                 }
                 if *s == Screen::Converter && self.s.conv_cat == CURRENCY_CAT { fx.push(Effect::FetchRates); }
+                if *s == Screen::Markets { fx.push(Effect::FetchMarkets(self.market_kind)); }
             }
             Action::Back => {
                 self.scroll = 0.0;
-                self.screen = match self.screen { Screen::PickUnit { .. } => Screen::Converter, Screen::Gallery => Screen::Photo, Screen::Tool | Screen::Vat => Screen::Tools, _ => Screen::Calc };
+                self.screen = match self.screen { Screen::PickUnit { .. } => Screen::Converter, Screen::Gallery => Screen::Photo, Screen::Tool | Screen::Vat | Screen::Markets => Screen::Tools, _ => Screen::Calc };
             }
             Action::UseValue(v) => { self.set_value(*v); self.screen = Screen::Calc; }
             Action::UseTokens => {
@@ -488,6 +495,15 @@ impl App {
                 Some((1, i)) => if let Some(h) = self.s.history.get_mut(i) { h.note.pop(); },
                 _ => {}
             },
+            Action::MarketKind(k) => {
+                self.market_kind = *k;
+                self.market_status = "Loading market data…".into();
+                fx.push(Effect::FetchMarkets(*k));
+            }
+            Action::MarketRefresh => {
+                self.market_status = "Refreshing market data…".into();
+                fx.push(Effect::FetchMarkets(self.market_kind));
+            }
             Action::HwKey(c) => {
                 // hardware keyboard on the calculator screen
                 let k: Option<&str> = match c {
@@ -566,6 +582,7 @@ impl App {
             Action::Set("bgcheck") => { self.s.bg_check = !self.s.bg_check; fx.push(Effect::BgCheck(self.s.bg_check)); fx.push(Effect::Save); }
             Action::Set("speaknow") => { if let Some(v) = self.current_value() { fx.push(Effect::Speak(expr::words(v, crate::i18n::lang()).unwrap_or_else(|| expr::display_num(v)))); } }
             Action::Set("icon") => { self.cycle_setting("icon"); fx.push(Effect::SetIcon(self.s.icon)); fx.push(Effect::Save); }
+            Action::Set("fraction") => { self.show_frac = !self.show_frac; }
             Action::Set(k) => { self.cycle_setting(k); fx.push(Effect::Save); }
             Action::OpenTool(i) => {
                 self.tool = *i; self.tool_mode = 0; self.list.clear(); self.focus = 0;
@@ -616,6 +633,8 @@ impl App {
     }
 
     /// Numeric values of the tool fields (NaN when empty or invalid).
+    pub fn market_quote_count(&self) -> usize { self.market_quotes.len() }
+
     pub fn field_values(&self) -> Vec<f64> { self.fields.iter().map(|f| f.replace(',', ".").parse::<f64>().unwrap_or(f64::NAN)).collect() }
 
     fn form_key(&mut self, k: &str) {
@@ -1012,7 +1031,7 @@ impl App {
             Screen::History => crate::i18n::t("History"), Screen::Vat => crate::i18n::t("VAT and tips"), Screen::Converter => crate::i18n::t("Converter"),
             Screen::PickUnit { .. } => crate::i18n::t("Choose a unit"), Screen::Settings => crate::i18n::t("Settings"), Screen::Photo => crate::i18n::t("Photo problem"),
             Screen::Gallery => crate::i18n::t("Choose a photo"), Screen::Calc => "",
-            Screen::Tools => crate::i18n::t("Tools"), Screen::Tool => crate::i18n::t(crate::tools::TOOLS[self.tool].name), Screen::Graph => crate::i18n::t("Graph"), Screen::Ask => crate::i18n::t("Word problem"),
+            Screen::Tools => crate::i18n::t("Tools"), Screen::Tool => crate::i18n::t(crate::tools::TOOLS[self.tool].name), Screen::Markets => "Markets", Screen::Graph => crate::i18n::t("Graph"), Screen::Ask => crate::i18n::t("Word problem"),
         };
         let h = 56.0 * d;
         out.push(W::Button { r: Rect::new(4.0 * d, 4.0 * d, 48.0 * d, 48.0 * d), label: "‹".into(), px: 30.0 * d, kind: Kind::Flat, action: Action::Back });
@@ -1112,6 +1131,7 @@ impl App {
                 para(out, &mut y, crate::i18n::t("Tap a row to move the result to the calculator."), 13.0 * d);
             }
             Screen::Converter => {
+                row(out, &mut y, "Stocks & cryptocurrencies", "›", Action::Nav(Screen::Markets));
                 let c = self.s.conv_cat;
                 let mut order: Vec<usize> = self.s.fav_cats.iter().cloned().filter(|i| *i < CATEGORIES.len()).collect();
                 for i in 0..CATEGORIES.len() { if !order.contains(&i) { order.push(i); } }
@@ -1173,6 +1193,7 @@ impl App {
                 let fixed = if self.s.fixed < 0 { crate::i18n::t("Automatic").to_string() } else { self.s.fixed.to_string() };
                 row(out, &mut y, crate::i18n::t("Decimal places"), &fixed, Action::Set("fixed"));
                 row(out, &mut y, crate::i18n::t("Result in words"), if self.s.words { crate::i18n::t("On") } else { crate::i18n::t("Off") }, Action::Set("words"));
+                row(out, &mut y, "Show exact fraction result", if self.show_frac { "On" } else { "Off" }, Action::Set("fraction"));
                 heading(out, &mut y, crate::i18n::t("Look"));
                 let acc = [crate::i18n::t("Classic"), crate::i18n::t("Blue"), crate::i18n::t("Green"), crate::i18n::t("Orange"), crate::i18n::t("Purple"), crate::i18n::t("Red"), crate::i18n::t("Phone colors")][self.s.accent as usize % 7];
                 row(out, &mut y, crate::i18n::t("Color"), acc, Action::Set("accent"));
@@ -1201,6 +1222,7 @@ impl App {
                 row(out, &mut y, crate::i18n::t("Word problem"), "›", Action::Nav(Screen::Ask));
                 row(out, &mut y, crate::i18n::t("VAT and tips"), "›", Action::Nav(Screen::Vat));
                 row(out, &mut y, crate::i18n::t("Graph"), "›", Action::Nav(Screen::Graph));
+                row(out, &mut y, "Stocks & cryptocurrencies", "›", Action::Nav(Screen::Markets));
                 for (i, td) in crate::tools::TOOLS.iter().enumerate() { row(out, &mut y, crate::i18n::t(td.name), "›", Action::OpenTool(i)); }
             }
             Screen::Tool => {
@@ -1281,6 +1303,25 @@ impl App {
                     _ => crate::i18n::t("Not supported on this phone. The app uses its own offline reader instead (simple problems only)."),
                 };
                 para(out, &mut y, ns, 13.0 * d);
+            }
+            Screen::Markets => {
+                chips(out, &mut y, &[
+                    ("Crypto".into(), Action::MarketKind(MarketKind::Crypto), self.market_kind == MarketKind::Crypto),
+                    ("Stocks".into(), Action::MarketKind(MarketKind::Stocks), self.market_kind == MarketKind::Stocks),
+                    ("Refresh".into(), Action::MarketRefresh, false),
+                ]);
+                para(out, &mut y, "Informational market quotes. Prices can be delayed and data providers may change.", 12.0 * d);
+                if !self.market_status.is_empty() { para(out, &mut y, &self.market_status, 12.0 * d); }
+                if self.market_quotes.is_empty() {
+                    para(out, &mut y, "No quote data yet. Tap Refresh and make sure the device is online.", 15.0 * d);
+                } else {
+                    for q in &self.market_quotes {
+                        let change = q.change_pct.map(|v| format!("{:+.2}%", v)).unwrap_or_else(|| "—".into());
+                        let value = format!("{}  {}", expr::display_num(q.price), change);
+                        row(out, &mut y, &format!("{}  {}", q.symbol, q.name), &value, Action::UseValue(q.price));
+                        para(out, &mut y, &format!("{} • 24h change", q.currency), 11.0 * d);
+                    }
+                }
             }
             Screen::Graph => {
                 let toks = self.graph_tokens();

@@ -14,7 +14,7 @@ use std::sync::mpsc::{channel, Sender};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
-enum Msg { Ask(Option<(String, bool)>), Nano(String), RateHist(String, String, Vec<(String, f64)>), Rates(Option<crate::convert::Rates>), Gallery(Vec<GalleryItem>, String), Photo(PhotoState), Paste(String), Toast(String) }
+enum Msg { Ask(Option<(String, bool)>), Nano(String), RateHist(String, String, Vec<(String, f64)>), Rates(Option<crate::convert::Rates>), Markets(crate::market::MarketKind, Vec<crate::market::Quote>), Gallery(Vec<GalleryItem>, String), Photo(PhotoState), Paste(String), Toast(String) }
 
 #[derive(Clone, Copy)]
 pub(crate) struct Jvm { pub vm: usize, pub act: usize }
@@ -248,6 +248,32 @@ fn effect(fx: Effect, app: &mut App, j: Jvm, tx: &Sender<Msg>, wake: &Arc<dyn Fn
             let body = j.run(|env, _| http_get(env, "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml")).flatten();
             Some(Msg::Rates(body.and_then(|b| crate::convert::parse_ecb(&b))))
         })); }
+        Effect::FetchMarkets(kind) => {
+            let kind2 = *kind;
+            app.market_status = "Loading market data…".into();
+            spawn(Box::new(move || {
+                let quotes = match kind2 {
+                    crate::market::MarketKind::Crypto => {
+                        j.run(|env, _| http_get(env, &crate::market::crypto_url()))
+                            .flatten()
+                            .map(|body| crate::market::parse_crypto(&body))
+                            .unwrap_or_default()
+                    }
+                    crate::market::MarketKind::Stocks => {
+                        let mut out = Vec::new();
+                        for (symbol, _, _) in crate::market::STOCKS {
+                            if let Some(body) = j.run(|env, _| http_get(env, &crate::market::stock_url(symbol))).flatten() {
+                                if let Some(q) = crate::market::parse_stock(&body, symbol) {
+                                    out.push(q);
+                                }
+                            }
+                        }
+                        out
+                    }
+                };
+                Some(Msg::Markets(kind2, quotes))
+            }));
+        }
         Effect::FetchRateHistory => {
             let c = app.s.conv_cat;
             let names = crate::convert::unit_names(c, &app.s.rates);
@@ -352,6 +378,15 @@ fn android_main(a: AndroidApp) {
             match m {
                 Msg::RateHist(f, t, pts) => { app.toast = None; app.rate_hist = Some((f, t, pts)); }
                 Msg::Rates(r) => match r { Some(r) => { app.rates_status = String::new(); app.s.rates = Some(r); fx.push(Effect::Save); } None => app.rates_status = crate::i18n::t("Could not update rates (showing last known)").into() },
+                Msg::Markets(kind, quotes) => {
+                    app.market_kind = kind;
+                    if quotes.is_empty() {
+                        app.market_status = "No market data received. Showing no stale values.".into();
+                    } else {
+                        app.market_quotes = quotes;
+                        app.market_status = "Updated. Data may be delayed depending on the provider.".into();
+                    }
+                }
                 Msg::Gallery(items, st) => { app.gallery = items; app.gallery_status = st; }
                 Msg::Photo(p) => app.photo = p,
                 Msg::Paste(t) => app.paste(&t),

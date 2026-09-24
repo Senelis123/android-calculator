@@ -876,4 +876,23 @@ mod tests {
         assert_eq!(parse_pasted("1.234,50 €"), Some("1234.50".into()));
         assert!(close(integrate(&|x| Some(x * x), 0.0, 3.0).unwrap(), 9.0));
     }
+    #[test] fn edge_cases_24() {
+        assert_eq!(ev("−2²"), Ok(-4.0));
+        assert_eq!(ev("(−2)²"), Ok(4.0));
+        assert_eq!(ev("2^3^2"), Ok(512.0));
+        assert!(close(ev("0.1+0.2").unwrap(), 0.3));
+        assert_eq!(ev("2(3+4)"), Ok(14.0));
+        assert_eq!(ev("√(−1)"), Err(CalcError::Domain));
+        assert_eq!(ev("log(−5)"), Err(CalcError::Domain));
+        assert_eq!(ev("ln(0)"), Err(CalcError::Domain));
+        assert_eq!(ev("5÷0"), Err(CalcError::DivZero));
+        assert!(close(ev("sin(90)").unwrap(), 1.0));
+    }
+
+    #[test] fn cubic_edge_cases_24() {
+        let e = Evaluator::new(true);
+        assert_eq!(e.solve(&toks("x³−6x²+11x−6=0")), Ok(vec![1.0, 2.0, 3.0]));
+        assert_eq!(e.solve(&toks("x³=27")), Ok(vec![3.0]));
+    }
+
 }

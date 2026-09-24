@@ -45,16 +45,23 @@ jobs:
       - name: Run tests
         run: cargo test --release --lib
 
-      - name: Restore signing key
-        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > debug.keystore
+      - name: Restore release signing key
+        env:
+          RELEASE_KEYSTORE_BASE64: ${{ secrets.RELEASE_KEYSTORE_BASE64 }}
+        run: |
+          test -n "$RELEASE_KEYSTORE_BASE64"
+          echo "$RELEASE_KEYSTORE_BASE64" | base64 -d > release.keystore
+          test -s release.keystore
 
       - name: Build APK
         run: |
           export ANDROID_NDK="$ANDROID_NDK_LATEST_HOME"
           export BUILD_TOOLS="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)"
           # Pin the compile SDK to Android 15 (API 35) instead of whatever preview the runner has.
-          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-35" >/dev/null
-          bash build_apk.sh
+          KEYSTORE=release.keystore KEYSTORE_PASSWORD="${{ secrets.RELEASE_KEYSTORE_PASSWORD }}" KEY_ALIAS="${{ secrets.RELEASE_KEY_ALIAS }}" bash build_apk.sh
+
+      - name: Generate APK checksum
+        run: sha256sum build/calculator-rust.apk > build/calculator-rust.apk.sha256
 
       - name: Publish release
         uses: softprops/action-gh-release@v2
@@ -62,4 +69,6 @@ jobs:
           repository: ${{ vars.RELEASES_REPO || github.repository }}
           token: ${{ vars.RELEASES_REPO && secrets.RELEASES_TOKEN || github.token }}
           tag_name: ${{ github.ref_name }}
-          files: build/calculator-rust.apk
+          files: |
+            build/calculator-rust.apk
+            build/calculator-rust.apk.sha256
