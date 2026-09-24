@@ -1,0 +1,52 @@
+# Builds the Rust APK and publishes it as a GitHub release when you push a tag like v2.2.0.0 (four parts: app.big.small.fix, matching the VERSION file).
+# The app's auto-updater checks the latest release of the repo it was built with.
+#
+# One-time setup (repo Settings > Secrets and variables > Actions):
+#   secret  KEYSTORE_BASE64  = base64 of debug.keystore (same key every time, or phones refuse the update)
+# Optional, only if this code repo stays private and releases go to a separate PUBLIC repo:
+#   variable RELEASES_REPO   = owner/name of the public releases repo
+#   secret   RELEASES_TOKEN  = personal access token with "contents: write" on that repo
+name: Release Rust APK
+
+on:
+  push:
+    tags: [ "v*" ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      UPDATE_REPO: ${{ vars.RELEASES_REPO || github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust Android targets
+        run: rustup target add aarch64-linux-android armv7-linux-androideabi
+
+      - name: Check tag matches VERSION file
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          V=$(tr -d "[:space:]" < VERSION)
+          [ "v$V" = "${GITHUB_REF_NAME}" ] || { echo "Tag ${GITHUB_REF_NAME} != VERSION v$V"; exit 1; }
+
+      - name: Restore signing key
+        run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > debug.keystore
+
+      - name: Build APK
+        run: |
+          export ANDROID_NDK="$ANDROID_NDK_LATEST_HOME"
+          export BUILD_TOOLS="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)"
+          export ANDROID_JAR="$(ls -d "$ANDROID_HOME"/platforms/android-* | sort -V | tail -1)/android.jar"
+          bash build_apk.sh
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          repository: ${{ vars.RELEASES_REPO || github.repository }}
+          token: ${{ vars.RELEASES_REPO && secrets.RELEASES_TOKEN || github.token }}
+          tag_name: ${{ github.ref_name }}
+          files: build/calculator-rust.apk
