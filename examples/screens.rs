@@ -22,6 +22,17 @@ fn main() {
             let sc = match n { "history" => Screen::History, "vat" => Screen::Vat, "conv" => Screen::Converter, "settings" => Screen::Settings, "photo" => Screen::Photo, "pick" => Screen::PickUnit { from: true }, _ => Screen::Calc };
             app.handle(&Action::Nav(sc));
         }
+        else if let Some(n) = s.strip_prefix("tool:") { app.handle(&Action::OpenTool(n.parse().unwrap())); }
+        else if let Some(n) = s.strip_prefix("mode:") { app.handle(&Action::ToolMode(n.parse().unwrap())); }
+        else if let Some(n) = s.strip_prefix("focus:") { app.handle(&Action::Focus(n.parse().unwrap())); }
+        else if let Some(k) = s.strip_prefix("fk:") { for c in k.split('_') { let c: &'static str = Box::leak(c.to_string().into_boxed_str()); app.handle(&Action::FormKey(c)); } }
+        else if s == "tools" { app.handle(&Action::Nav(Screen::Tools)); }
+        else if let Some(t) = s.strip_prefix("ask:") { app.handle(&Action::Nav(Screen::Ask)); app.ask_text = t.replace('_', " "); app.nano = "unavailable".into(); let e = calculator::expr::text_to_expr(&app.ask_text).map(|e| (e, false)); app.ask_result(e); }
+        else if let Some(n) = s.strip_prefix("scroll:") { app.scroll = n.parse().unwrap(); }
+        else if s == "whatsnew" { app.whats_new = true; }
+        else if s == "onehand" { app.s.one_hand = 1; }
+        else if s == "graph" { app.handle(&Action::Nav(Screen::Graph)); }
+        else if let Some(l) = s.strip_prefix("lang:") { app.s.lang = l.parse().unwrap(); app.apply_lang(); }
         else if let Some(c) = s.strip_prefix("cat:") { app.handle(&Action::ConvCat(c.parse().unwrap())); }
     }
     if app.s.rates.is_none() { app.s.rates = calculator::convert::parse_ecb("<Cube time='2026-09-24'><Cube currency='USD' rate='1.1367'/><Cube currency='GBP' rate='0.85986'/></Cube>"); }
