@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.androidcalculator.rust"
+    android:versionCode="@VERSION_CODE@"
+    android:versionName="@VERSION_NAME@">
+    <uses-sdk android:minSdkVersion="23" android:targetSdkVersion="34" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+    <queries><intent><action android:name="android.media.action.STILL_IMAGE_CAMERA" /></intent></queries>
+    <application
+        android:theme="@style/AppTheme"
+        android:label="Calculator"
+        android:icon="@mipmap/ic_launcher"
+        android:allowBackup="true"
+        android:supportsRtl="true"
+        android:hasCode="false"
+        android:extractNativeLibs="true">
+        <activity
+            android:name="android.app.NativeActivity"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|keyboard|navigation|uiMode|density|fontScale|smallestScreenSize"
+            android:exported="true">
+            <meta-data android:name="android.app.lib_name" android:value="calculator" />
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>
