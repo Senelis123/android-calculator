@@ -14,12 +14,12 @@ use std::sync::mpsc::{channel, Sender};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
-enum Msg { Rates(Option<crate::convert::Rates>), Gallery(Vec<GalleryItem>, String), Photo(PhotoState), Paste(String), Toast(String) }
+enum Msg { Ask(Option<(String, bool)>), Nano(String), RateHist(String, String, Vec<(String, f64)>), Rates(Option<crate::convert::Rates>), Gallery(Vec<GalleryItem>, String), Photo(PhotoState), Paste(String), Toast(String) }
 
 #[derive(Clone, Copy)]
-struct Jvm { vm: usize, act: usize }
+pub(crate) struct Jvm { pub vm: usize, pub act: usize }
 impl Jvm {
-    fn run<T>(&self, f: impl FnOnce(&mut JNIEnv, &JObject) -> R<T>) -> Option<T> {
+    pub fn run<T>(&self, f: impl FnOnce(&mut JNIEnv, &JObject) -> R<T>) -> Option<T> {
         let vm = unsafe { JavaVM::from_raw(self.vm as *mut _) }.ok()?;
         let mut env = vm.attach_current_thread_permanently().ok()?;
         let act = unsafe { JObject::from_raw(self.act as jni::sys::jobject) };
@@ -163,7 +163,33 @@ fn load_photo(env: &mut JNIEnv, act: &JObject, id: i64) -> R<Option<image::RgbIm
 fn effect(fx: Effect, app: &mut App, j: Jvm, tx: &Sender<Msg>, wake: &Arc<dyn Fn() + Send + Sync>, updater: &Updater, data: &std::path::Path, camera_pending: &mut bool) {
     let spawn = |f: Box<dyn FnOnce() -> Option<Msg> + Send>| { let tx = tx.clone(); let wake = wake.clone(); std::thread::spawn(move || { if let Some(m) = f() { let _ = tx.send(m); } wake(); }); };
     match fx {
-        Effect::Vibrate => { j.run(|env, act| { let v = service(env, act, "vibrator")?; if !v.is_null() { env.call_method(&v, "vibrate", "(J)V", &[JValue::Long(12)])?; } Ok(()) }); }
+        Effect::Vibrate => { let ms = app.s.vib_ms as i64; if ms > 0 { j.run(|env, act| { let v = service(env, act, "vibrator")?; if !v.is_null() { env.call_method(&v, "vibrate", "(J)V", &[JValue::Long(ms)])?; } Ok(()) }); } }
+        Effect::Floating => { if crate::addon::call(j, "floating", "").as_deref() == Some("permission") { app.toast = Some(crate::i18n::t("Allow \"Display over other apps\", then tap again").into()); } }
+        Effect::BgCheck(on) => { if on { j.run(|env, act| { if sdk(env)? >= 33 { let arr = env.new_object_array(1, "java/lang/String", jni::objects::JObject::null())?; let p = env.new_string("android.permission.POST_NOTIFICATIONS")?; env.set_object_array_element(&arr, 0, p)?; env.call_method(act, "requestPermissions", "([Ljava/lang/String;I)V", &[JValue::Object(&arr), JValue::Int(5)])?; } Ok(()) }); } let _ = crate::addon::call(j, "updateChecks", if on { "1" } else { "0" }); }
+        Effect::Listen => { if crate::addon::call(j, "listen", crate::i18n::LANGS[crate::i18n::lang()]).is_some() { *camera_pending = false; app.toast = Some(crate::i18n::t("Listening…").into()); VOICE_PENDING.store(true, std::sync::atomic::Ordering::Relaxed); } else { app.toast = Some(crate::i18n::t("Voice input is not available on this phone").into()); } }
+        Effect::NanoStatus => spawn(Box::new(move || Some(Msg::Nano(crate::addon::call(j, "nano", "status").unwrap_or_else(|| "unavailable".into()))))),
+        Effect::Solve(text, use_nano) => spawn(Box::new(move || {
+            if use_nano {
+                let prompt = format!("Convert this math word problem into ONE arithmetic expression. Use only numbers, + - * / ^ ( ) and sqrt(). Reply with the expression only, no words.\nProblem: {text}");
+                if let Some(e) = crate::addon::call(j, "nano", &format!("ask\t{prompt}")).and_then(|a| crate::expr::expr_from_model(&a)) { return Some(Msg::Ask(Some((e, true)))); }
+            }
+            Some(Msg::Ask(crate::expr::text_to_expr(&text).map(|e| (e, false))))
+        })),
+        Effect::Click => { j.run(|env, act| { let a = service(env, act, "audio")?; if !a.is_null() { env.call_method(&a, "playSoundEffect", "(IF)V", &[JValue::Int(0), JValue::Float(0.5)])?; } Ok(()) }); }
+        Effect::SetIcon(i) => { let _ = crate::addon::call(j, "setIcon", &i.to_string()); }
+        Effect::ReportBug => {
+            let info = j.run(|env, _| -> R<String> {
+                let f = |env: &mut JNIEnv, n: &str| -> R<String> { let o = env.get_static_field("android/os/Build", n, "Ljava/lang/String;")?.l()?; Ok(env.get_string(&o.into())?.into()) };
+                let rel = { let o = env.get_static_field("android/os/Build$VERSION", "RELEASE", "Ljava/lang/String;")?.l()?; let s: String = env.get_string(&o.into())?.into(); s };
+                Ok(format!("{} {} ({}), Android {}", f(env, "MANUFACTURER")?, f(env, "MODEL")?, f(env, "DEVICE")?, rel))
+            }).unwrap_or_default();
+            let body = format!("{}\n\n---\n{} {}\n{}\n{}: {}", crate::i18n::t("Describe the problem here:"), crate::i18n::t("Calculator"), crate::app::version(), info, crate::i18n::t("Language"), crate::i18n::LANGS[crate::i18n::lang()]);
+            let url = format!("https://github.com/Senelis123/android-calculator/issues/new?title={}&body={}", enc(crate::i18n::t("Problem report")), enc(&body));
+            j.run(|env, act| { let a = env.new_string("android.intent.action.VIEW")?; let u = env.new_string(&url)?;
+                let uri = env.call_static_method("android/net/Uri", "parse", "(Ljava/lang/String;)Landroid/net/Uri;", &[JValue::Object(&u)])?.l()?;
+                let i = env.new_object("android/content/Intent", "(Ljava/lang/String;Landroid/net/Uri;)V", &[JValue::Object(&a), JValue::Object(&uri)])?;
+                env.call_method(act, "startActivity", "(Landroid/content/Intent;)V", &[JValue::Object(&i)])?; Ok(()) });
+        }
         Effect::Copy(text) => { j.run(|env, act| {
             ensure_looper(env)?;
             let cm = service(env, act, "clipboard")?;
@@ -171,6 +197,39 @@ fn effect(fx: Effect, app: &mut App, j: Jvm, tx: &Sender<Msg>, wake: &Arc<dyn Fn
             let clip = env.call_static_method("android/content/ClipData", "newPlainText", "(Ljava/lang/CharSequence;Ljava/lang/CharSequence;)Landroid/content/ClipData;", &[JValue::Object(&l), JValue::Object(&t)])?.l()?;
             env.call_method(&cm, "setPrimaryClip", "(Landroid/content/ClipData;)V", &[JValue::Object(&clip)])?; Ok(())
         }); }
+        Effect::Keyboard(_) => {}
+        Effect::Speak(text) => { let _ = crate::addon::speak(j, &format!("{}\t{}", crate::i18n::LANGS[crate::i18n::lang()], text)); }
+        Effect::Share(text) => { j.run(|env, act| {
+            let action = env.new_string("android.intent.action.SEND")?;
+            let intent = env.new_object("android/content/Intent", "(Ljava/lang/String;)V", &[JValue::Object(&action)])?;
+            let ty = env.new_string("text/plain")?;
+            env.call_method(&intent, "setType", "(Ljava/lang/String;)Landroid/content/Intent;", &[JValue::Object(&ty)])?;
+            let (k, v) = (env.new_string("android.intent.extra.TEXT")?, env.new_string(&text)?);
+            env.call_method(&intent, "putExtra", "(Ljava/lang/String;Ljava/lang/String;)Landroid/content/Intent;", &[JValue::Object(&k), JValue::Object(&v)])?;
+            let title = env.new_string(crate::i18n::t("Share"))?;
+            let chooser = env.call_static_method("android/content/Intent", "createChooser", "(Landroid/content/Intent;Ljava/lang/CharSequence;)Landroid/content/Intent;", &[JValue::Object(&intent), JValue::Object(&title)])?.l()?;
+            env.call_method(act, "startActivity", "(Landroid/content/Intent;)V", &[JValue::Object(&chooser)])?; Ok(())
+        }); }
+        Effect::SaveFile(name, content) => {
+            let ok = j.run(|env, act| -> R<bool> {
+                if sdk(env)? < 29 { return Ok(false); }
+                let cv = env.new_object("android/content/ContentValues", "()V", &[])?;
+                let put = |env: &mut JNIEnv, k: &str, v: &str| -> R<()> { let (k, v) = (env.new_string(k)?, env.new_string(v)?); env.call_method(&cv, "put", "(Ljava/lang/String;Ljava/lang/String;)V", &[JValue::Object(&k), JValue::Object(&v)])?; Ok(()) };
+                put(env, "_display_name", &name)?;
+                put(env, "mime_type", if name.ends_with(".csv") { "text/csv" } else { "application/json" })?;
+                put(env, "relative_path", "Download/")?;
+                let uri = env.get_static_field("android/provider/MediaStore$Downloads", "EXTERNAL_CONTENT_URI", "Landroid/net/Uri;")?.l()?;
+                let res = env.call_method(act, "getContentResolver", "()Landroid/content/ContentResolver;", &[])?.l()?;
+                let item = env.call_method(&res, "insert", "(Landroid/net/Uri;Landroid/content/ContentValues;)Landroid/net/Uri;", &[JValue::Object(&uri), JValue::Object(&cv)])?.l()?;
+                if item.is_null() { return Ok(false); }
+                let os = env.call_method(&res, "openOutputStream", "(Landroid/net/Uri;)Ljava/io/OutputStream;", &[JValue::Object(&item)])?.l()?;
+                let bytes = env.byte_array_from_slice(content.as_bytes())?;
+                env.call_method(&os, "write", "([B)V", &[JValue::Object(&bytes)])?;
+                env.call_method(&os, "close", "()V", &[])?;
+                Ok(true)
+            }).unwrap_or(false);
+            if !ok { let _ = tx.send(Msg::Toast(crate::i18n::t("Could not save the file").into())); }
+        }
         Effect::RequestPaste => {
             let t = j.run(|env, act| -> R<Option<String>> {
                 ensure_looper(env)?;
@@ -182,13 +241,23 @@ fn effect(fx: Effect, app: &mut App, j: Jvm, tx: &Sender<Msg>, wake: &Arc<dyn Fn
                 let s = env.call_method(&cs, "toString", "()Ljava/lang/String;", &[])?.l()?;
                 Ok(Some(env.get_string(&s.into())?.into()))
             }).flatten();
-            match t { Some(t) => { let _ = tx.send(Msg::Paste(t)); } None => { let _ = tx.send(Msg::Toast("Iškarpinė tuščia".into())); } }
+            match t { Some(t) => { let _ = tx.send(Msg::Paste(t)); } None => { let _ = tx.send(Msg::Toast(crate::i18n::t("Clipboard is empty").into())); } }
         }
         Effect::Save => { if let Ok(js) = serde_json::to_string(&app.s) { let tmp = data.join("saved.json.tmp"); if std::fs::write(&tmp, js).is_ok() { let _ = std::fs::rename(&tmp, data.join("saved.json")); } } }
-        Effect::FetchRates => { app.rates_status = "Atnaujinami kursai…".into(); spawn(Box::new(move || {
+        Effect::FetchRates => { app.rates_status = crate::i18n::t("Updating rates…").into(); spawn(Box::new(move || {
             let body = j.run(|env, _| http_get(env, "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml")).flatten();
             Some(Msg::Rates(body.and_then(|b| crate::convert::parse_ecb(&b))))
         })); }
+        Effect::FetchRateHistory => {
+            let c = app.s.conv_cat;
+            let names = crate::convert::unit_names(c, &app.s.rates);
+            let (f, t) = (names.get(app.s.conv_from[c]).cloned().unwrap_or_default(), names.get(app.s.conv_to[c]).cloned().unwrap_or_default());
+            app.toast = Some(crate::i18n::t("Loading…").into());
+            spawn(Box::new(move || {
+                let body = j.run(|env, _| http_get(env, "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-hist-90d.xml")).flatten();
+                Some(match body { Some(b) => Msg::RateHist(f.clone(), t.clone(), crate::convert::parse_history(&b, &f, &t)), None => Msg::Toast(crate::i18n::t("No internet connection").into()) })
+            }));
+        }
         Effect::CheckUpdate => updater.check(),
         Effect::UpdateTap => {
             let st = updater.state.lock().unwrap().clone();
@@ -197,19 +266,19 @@ fn effect(fx: Effect, app: &mut App, j: Jvm, tx: &Sender<Msg>, wake: &Arc<dyn Fn
         Effect::TakePhoto => {
             let ok = j.run(|env, act| { let a = env.new_string("android.media.action.STILL_IMAGE_CAMERA")?; let i = env.new_object("android/content/Intent", "(Ljava/lang/String;)V", &[JValue::Object(&a)])?;
                 env.call_method(act, "startActivity", "(Landroid/content/Intent;)V", &[JValue::Object(&i)])?; Ok(()) }).is_some();
-            if ok { *camera_pending = true; app.toast = Some("Nufotografuokite ir grįžkite - nuotrauka bus sąraše".into()); } else { app.toast = Some("Nepavyko atidaryti kameros".into()); }
+            if ok { *camera_pending = true; app.toast = Some(crate::i18n::t("Take the photo and come back - it will be in the list").into()); } else { app.toast = Some(crate::i18n::t("Could not open the camera").into()); }
         }
         Effect::OpenGallery => {
-            if j.run(|env, act| photo_permission(env, act, true)) != Some(true) { app.gallery_status = "Leiskite programai matyti nuotraukas ir bandykite dar kartą.".into(); return; }
-            app.gallery_status = "Įkeliama…".into();
+            if j.run(|env, act| photo_permission(env, act, true)) != Some(true) { app.gallery_status = crate::i18n::t("Allow the app to see photos and try again.").into(); return; }
+            app.gallery_status = crate::i18n::t("Loading…").into();
             spawn(Box::new(move || { let items = j.run(|env, act| list_gallery(env, act)).unwrap_or_default();
-                let st = if items.is_empty() { "Nuotraukų nerasta".to_string() } else { String::new() }; Some(Msg::Gallery(items, st)) }));
+                let st = if items.is_empty() { crate::i18n::t("No photos found").to_string() } else { String::new() }; Some(Msg::Gallery(items, st)) }));
         }
         Effect::LoadGallery(id) => spawn(Box::new(move || {
             let img = j.run(|env, act| load_photo(env, act, id)).flatten();
             Some(Msg::Photo(match img {
                 Some(img) => { let img = crate::ocr::prepare(image::DynamicImage::ImageRgb8(img)); PHOTO_SRC_W.store(img.width(), std::sync::atomic::Ordering::Relaxed); App::photo_result(img) }
-                None => PhotoState::Failed("Nepavyko atidaryti nuotraukos".into()),
+                None => PhotoState::Failed(crate::i18n::t("Could not open the photo").into()),
             }))
         })),
     }
@@ -229,6 +298,11 @@ fn android_main(a: AndroidApp) {
     let wake: Arc<dyn Fn() + Send + Sync> = Arc::new(move || waker.wake());
     let updater = Updater::new(a.vm_as_ptr(), a.activity_as_ptr(), wake.clone());
     updater.check();
+    // phone settings the Java add-on can read: Material You colour and system text size
+    if let Some(h) = crate::addon::call(j, "accent", "") { if let Ok(v) = u32::from_str_radix(h.trim_start_matches('#'), 16) { app.system_accent = Some([(v >> 16) as u8, (v >> 8) as u8, v as u8]); } }
+    if let Some(f) = crate::addon::call(j, "fontScale", "").and_then(|f| f.parse::<f32>().ok()) { app.system_font = f; }
+    app.apply_look();
+    let _ = crate::addon::call(j, "updateChecks", if app.s.bg_check { "1" } else { "0" });
     let (tx, rx) = channel::<Msg>();
     let mut window: Option<NativeWindow> = None;
     let (mut quit, mut dirty, mut camera_pending) = (false, true, false);
@@ -255,28 +329,34 @@ fn android_main(a: AndroidApp) {
         let d = density(&a);
         let night = matches!(a.config().ui_mode_night(), ndk::configuration::UiModeNight::Yes);
         if night != app.system_dark { app.system_dark = night; dirty = true; }
+        let sl = crate::i18n::lang_from_code(&a.config().language().unwrap_or_default());
+        if sl != app.system_lang { app.system_lang = sl; app.apply_lang(); dirty = true; }
         let mut fx: Vec<Effect> = vec![];
         if resumed {
             resumed = false;
+            if VOICE_PENDING.swap(false, std::sync::atomic::Ordering::Relaxed) { if let Some(t) = crate::addon::call(j, "voiceResult", "") { if !t.is_empty() { app.ask_text = t; app.ask_out = None; fx.extend(app.handle(&Action::Set("ask_solve"))); } } }
             if camera_pending { camera_pending = false; fx.extend(app.handle(&Action::OpenGallery)); }
             else if app.screen == Screen::Gallery && app.gallery.is_empty() { fx.push(Effect::OpenGallery); }
         }
         while let Ok(m) = rx.try_recv() {
             dirty = true;
             match m {
-                Msg::Rates(r) => match r { Some(r) => { app.rates_status = String::new(); app.s.rates = Some(r); fx.push(Effect::Save); } None => app.rates_status = "Nepavyko atnaujinti kursų (rodomi paskutiniai žinomi)".into() },
+                Msg::RateHist(f, t, pts) => { app.toast = None; app.rate_hist = Some((f, t, pts)); }
+                Msg::Rates(r) => match r { Some(r) => { app.rates_status = String::new(); app.s.rates = Some(r); fx.push(Effect::Save); } None => app.rates_status = crate::i18n::t("Could not update rates (showing last known)").into() },
                 Msg::Gallery(items, st) => { app.gallery = items; app.gallery_status = st; }
                 Msg::Photo(p) => app.photo = p,
                 Msg::Paste(t) => app.paste(&t),
                 Msg::Toast(t) => app.toast = Some(t),
+                Msg::Ask(r) => app.ask_result(r),
+                Msg::Nano(n) => app.nano = n,
             }
         }
         let banner = match &*updater.state.lock().unwrap() {
             UpdateState::Idle => None,
-            UpdateState::Available { tag, .. } => Some(format!("Naujinys {tag} - bakstelėkite įdiegti")),
-            UpdateState::Downloading { tag } => Some(format!("Atsisiunčiamas {tag}…")),
-            UpdateState::Installing { tag } => Some(format!("Patvirtinkite {tag} diegimą")),
-            UpdateState::Failed { message } => Some(format!("{message} (bakstelėkite)")),
+            UpdateState::Available { tag, .. } => Some(crate::i18n::tf("Update {} - tap to install", &[tag])),
+            UpdateState::Downloading { tag } => Some(crate::i18n::tf("Downloading {}…", &[tag])),
+            UpdateState::Installing { tag } => Some(crate::i18n::tf("Confirm installing {}", &[tag])),
+            UpdateState::Failed { message } => Some(crate::i18n::tf("{} (tap)", &[message])),
         };
         if banner != app.banner { app.banner = banner; dirty = true; }
         if app.toast.is_some() && toast_at.is_none() { toast_at = Some(Instant::now()); }
@@ -291,7 +371,7 @@ fn android_main(a: AndroidApp) {
                         MotionAction::Down => { pressed = frame.hit(x, y); down = Some((x, y, Instant::now(), false)); last_y = y; long_fired = false; dirty = true; }
                         MotionAction::Move => if let Some((x0, y0, t, scrolling)) = down {
                             let moved = ((x - x0).powi(2) + (y - y0).powi(2)).sqrt() > 10.0 * d;
-                            let in_scroll = frame.scroll_area.map_or(false, |r| r.contains(x0, y0));
+                            let in_scroll = frame.scroll_area.map_or(false, |r| r.contains(x0, y0)) && ((y - y0).abs() > (x - x0).abs() || scrolling);
                             if moved && in_scroll { down = Some((x0, y0, t, true)); pressed = None; }
                             else if moved && pressed.is_some() && frame.hit(x, y) != pressed { pressed = None; }
                             if scrolling || (moved && in_scroll) {
@@ -301,7 +381,16 @@ fn android_main(a: AndroidApp) {
                             last_y = y; dirty = true;
                         },
                         MotionAction::Up => {
-                            if !long_fired { if let (Some(i), Some(jj)) = (pressed, frame.hit(x, y)) { if i == jj { if let Some(act) = frame.action(i) { fx.extend(app.handle(&act)); } } } }
+                            let swiped = if let Some((x0, y0, _, scrolling)) = down {
+                                let (dx, dy) = (x - x0, y - y0);
+                                if !scrolling && !long_fired && dx.abs() > 70.0 * d && dx.abs() > 2.0 * dy.abs() {
+                                    let on = frame.hit(x0, y0).and_then(|i| frame.action(i)).unwrap_or(Action::None);
+                                    let ok = match app.screen { Screen::Calc => matches!(on, Action::Copy | Action::ClosePopup), Screen::History => matches!(on, Action::LoadHistory(_)), _ => false };
+                                    if ok { fx.extend(app.handle(&Action::Swipe(dx > 0.0, Box::new(on)))); }
+                                    ok
+                                } else { false }
+                            } else { false };
+                            if !long_fired && !swiped { if let (Some(i), Some(jj)) = (pressed, frame.hit(x, y)) { if i == jj { if let Some(act) = frame.action(i) { fx.extend(app.handle(&act)); } } } }
                             pressed = None; down = None; dirty = true;
                         }
                         MotionAction::Cancel => { pressed = None; down = None; dirty = true; }
@@ -309,8 +398,23 @@ fn android_main(a: AndroidApp) {
                     }
                     InputStatus::Handled
                 }
-                InputEvent::KeyEvent(k) if k.key_code() == Keycode::Back && (app.screen != Screen::Calc || app.popup) => {
-                    if k.action() == KeyAction::Up { fx.extend(app.handle(&Action::Back)); dirty = true; }
+                InputEvent::KeyEvent(k) if k.key_code() == Keycode::Back && (app.screen != Screen::Calc || app.popup || app.text_target.is_some()) => {
+                    if k.action() == KeyAction::Up { fx.extend(app.handle(if app.text_target.is_some() { &Action::EndText } else { &Action::Back })); dirty = true; }
+                    InputStatus::Handled
+                }
+                InputEvent::KeyEvent(k) if k.action() == KeyAction::Down && k.key_code() != Keycode::Back && !matches!(k.key_code(), Keycode::VolumeUp | Keycode::VolumeDown) => {
+                    let ch = match k.key_code() {
+                        Keycode::Del => Some('\u{8}'), Keycode::Enter | Keycode::NumpadEnter => Some('\n'), Keycode::Escape => Some('\u{1b}'),
+                        code => a.device_key_character_map(k.device_id()).ok().and_then(|m| m.get(code, k.meta_state()).ok()).and_then(|c| match c { android_activity::input::KeyMapChar::Unicode(c) => Some(c), _ => None }),
+                    };
+                    match (ch, app.text_target.is_some()) {
+                        (Some('\u{8}'), true) => fx.extend(app.handle(&Action::TextBack)),
+                        (Some('\n'), true) => fx.extend(app.handle(&Action::EndText)),
+                        (Some(c), true) if !c.is_control() => fx.extend(app.handle(&Action::TextKey(c))),
+                        (Some(c), false) if app.screen == Screen::Calc => fx.extend(app.handle(&Action::HwKey(c))),
+                        _ => return InputStatus::Unhandled,
+                    }
+                    dirty = true;
                     InputStatus::Handled
                 }
                 _ => InputStatus::Unhandled,
@@ -322,7 +426,9 @@ fn android_main(a: AndroidApp) {
                 long_fired = true; pressed = None; fx.extend(app.handle(&Action::DisplayLongPress)); dirty = true;
             }
         }
-        for e in fx { effect(e, &mut app, j, &tx, &wake, &updater, &data, &mut camera_pending); dirty = true; }
+        for e in fx {
+            if let Effect::Keyboard(show) = e { if show { a.show_soft_input(true); } else { a.hide_soft_input(false); } continue; }
+            effect(e, &mut app, j, &tx, &wake, &updater, &data, &mut camera_pending); dirty = true; }
 
         if dirty {
             if let Some(win) = window.as_ref() {
@@ -341,4 +447,16 @@ fn android_main(a: AndroidApp) {
             dirty = false;
         }
     }
+}
+
+fn enc(s: &str) -> String { s.bytes().map(|b| if b.is_ascii_alphanumeric() || b"-_.~".contains(&b) { (b as char).to_string() } else { format!("%{:02X}", b) }).collect() }
+
+static VOICE_PENDING: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+
+/// Used by the Java add-on (floating calculator, widget): evaluates an expression with the app's engine.
+#[no_mangle]
+pub extern "system" fn Java_com_example_androidcalculator_rust_Addon_nativeEval<'a>(mut env: JNIEnv<'a>, _c: jni::objects::JClass<'a>, s: jni::objects::JString<'a>) -> jni::sys::jstring {
+    let text: String = env.get_string(&s).map(|v| v.into()).unwrap_or_default();
+    let out = crate::expr::eval_text(&text).map(crate::expr::display_num).unwrap_or_else(|| "Error".into());
+    env.new_string(out).map(|o| o.into_raw()).unwrap_or(std::ptr::null_mut())
 }

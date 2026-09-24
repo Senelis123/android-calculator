@@ -47,9 +47,30 @@ pub fn newer_release(json: &str, current: &str) -> Option<(String, String)> {
     Some((r.tag_name, apk.browser_download_url.clone()))
 }
 
+/// Beta channel: also offer pre-releases. Set from the app settings.
+pub static BETA: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+
+/// Picks the newest release from the /releases list (pre-releases only when `beta`).
+pub fn newest_from_list(json: &str, current: &str, beta: bool) -> Option<(String, String)> {
+    let list: Vec<Release> = serde_json::from_str(json).ok()?;
+    let mut best: Option<(String, String)> = None;
+    for r in list {
+        if r.draft || (r.prerelease && !beta) || !is_newer(&r.tag_name, current) { continue; }
+        let Some(apk) = r.assets.iter().find(|a| a.name.to_ascii_lowercase().ends_with(".apk")) else { continue };
+        if best.as_ref().map_or(true, |(t, _)| is_newer(&r.tag_name, t)) { best = Some((r.tag_name.clone(), apk.browser_download_url.clone())); }
+    }
+    best
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test] fn beta_list() {
+        let j = r#"[{"tag_name":"v2.4.0.0","draft":false,"prerelease":true,"assets":[{"name":"a.apk","browser_download_url":"u1"}]},{"tag_name":"v2.3.0.1","draft":false,"prerelease":false,"assets":[{"name":"a.apk","browser_download_url":"u2"}]}]"#;
+        assert_eq!(newest_from_list(j, "2.3.0.0", false).unwrap().0, "v2.3.0.1");
+        assert_eq!(newest_from_list(j, "2.3.0.0", true).unwrap().0, "v2.4.0.0");
+        assert!(newest_from_list(j, "2.4.0.0", true).is_none());
+    }
     #[test] fn versions() {
         assert!(is_newer("v2.2.0", "2.1.0"));
         assert!(is_newer("2.10", "2.9.9"));
@@ -180,10 +201,11 @@ pub mod android {
         /// Background check of the latest release; silent on any failure.
         pub fn check(&self) {
             self.spawn(|env, _act, state| {
-                let url = format!("https://api.github.com/repos/{UPDATE_REPO}/releases/latest");
+                let url = format!("https://api.github.com/repos/{UPDATE_REPO}/releases?per_page=20");
                 match http_get(env, &url) {
                     Ok(Some(body)) => {
-                        if let Some((tag, apk_url)) = newer_release(&body, crate::app::version()) {
+                        let beta = super::BETA.load(std::sync::atomic::Ordering::Relaxed);
+                        if let Some((tag, apk_url)) = super::newest_from_list(&body, crate::app::version(), beta).or_else(|| newer_release(&body, crate::app::version())) {
                             *state.lock().unwrap() = UpdateState::Available { tag, apk_url };
                         }
                     }
@@ -204,19 +226,19 @@ pub mod android {
             self.spawn(move |env, act, state| {
                 let fail = |env: &mut JNIEnv, msg: &str| { clear(env); *state.lock().unwrap() = UpdateState::Failed { message: msg.into() }; };
                 wake();
-                let id = match enqueue_download(env, act, &url, &tag) { Ok(id) => id, Err(e) => { log::warn!("{e:?}"); return fail(env, "Nepavyko pradėti atsisiuntimo"); } };
+                let id = match enqueue_download(env, act, &url, &tag) { Ok(id) => id, Err(e) => { log::warn!("{e:?}"); return fail(env, crate::i18n::t("Could not start the download")); } };
                 loop {
                     std::thread::sleep(std::time::Duration::from_millis(700));
                     match download_status(env, act, id) {
                         Ok(8) => break,
-                        Ok(16) => return fail(env, "Atsisiųsti nepavyko"),
+                        Ok(16) => return fail(env, crate::i18n::t("Download failed")),
                         Ok(_) => continue,
-                        Err(e) => { log::warn!("{e:?}"); return fail(env, "Atsisiųsti nepavyko"); }
+                        Err(e) => { log::warn!("{e:?}"); return fail(env, crate::i18n::t("Download failed")); }
                     }
                 }
                 match launch_installer(env, act, id) {
                     Ok(()) => *state.lock().unwrap() = UpdateState::Installing { tag: tag.clone() },
-                    Err(e) => { log::warn!("{e:?}"); fail(env, "Nepavyko atidaryti diegimo"); }
+                    Err(e) => { log::warn!("{e:?}"); fail(env, crate::i18n::t("Could not open the installer")); }
                 }
             });
         }

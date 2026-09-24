@@ -5,14 +5,40 @@ use serde::{Deserialize, Serialize};
 pub struct Category { pub name: &'static str, pub units: &'static [(&'static str, f64)] }
 
 pub const CATEGORIES: &[Category] = &[
-    Category { name: "Valiuta", units: &[] }, // filled from ECB rates
-    Category { name: "Ilgis", units: &[("mm", 0.001), ("cm", 0.01), ("m", 1.0), ("km", 1000.0), ("in (colis)", 0.0254), ("ft (pėda)", 0.3048), ("yd (jardas)", 0.9144), ("mi (mylia)", 1609.344)] },
-    Category { name: "Svoris", units: &[("mg", 1e-6), ("g", 0.001), ("kg", 1.0), ("t", 1000.0), ("oz (uncija)", 0.028349523125), ("lb (svaras)", 0.45359237)] },
-    Category { name: "Temperatūra", units: &[("°C", 0.0), ("°F", 0.0), ("K", 0.0)] },
-    Category { name: "Tūris", units: &[("ml", 0.001), ("l", 1.0), ("m³", 1000.0), ("US gal", 3.785411784), ("UK gal", 4.54609), ("US puodelis", 0.2365882365), ("US fl oz", 0.0295735295625)] },
-    Category { name: "Plotas", units: &[("cm²", 1e-4), ("m²", 1.0), ("a (aras)", 100.0), ("ha", 10000.0), ("km²", 1e6), ("ft²", 0.09290304), ("akras", 4046.8564224)] },
-    Category { name: "Greitis", units: &[("m/s", 1.0), ("km/h", 1.0 / 3.6), ("mph", 0.44704), ("mazgas", 1852.0 / 3600.0)] },
+    Category { name: "Currency", units: &[] }, // filled from ECB rates
+    Category { name: "Length", units: &[("mm", 0.001), ("cm", 0.01), ("m", 1.0), ("km", 1000.0), ("in", 0.0254), ("ft", 0.3048), ("yd", 0.9144), ("mi", 1609.344)] },
+    Category { name: "Weight", units: &[("mg", 1e-6), ("g", 0.001), ("kg", 1.0), ("t", 1000.0), ("oz", 0.028349523125), ("lb", 0.45359237)] },
+    Category { name: "Temperature", units: &[("°C", 0.0), ("°F", 0.0), ("K", 0.0)] },
+    Category { name: "Volume", units: &[("ml", 0.001), ("l", 1.0), ("m³", 1000.0), ("US gal", 3.785411784), ("UK gal", 4.54609), ("US cup", 0.2365882365), ("US fl oz", 0.0295735295625)] },
+    Category { name: "Area", units: &[("cm²", 1e-4), ("m²", 1.0), ("a", 100.0), ("ha", 10000.0), ("km²", 1e6), ("ft²", 0.09290304), ("acre", 4046.8564224)] },
+    Category { name: "Speed", units: &[("m/s", 1.0), ("km/h", 1.0 / 3.6), ("mph", 0.44704), ("kn", 1852.0 / 3600.0)] },
+    Category { name: "Pressure", units: &[("Pa", 1.0), ("kPa", 1000.0), ("bar", 1e5), ("atm", 101325.0), ("mmHg", 133.322387415), ("psi", 6894.757293168)] },
+    Category { name: "Energy", units: &[("J", 1.0), ("kJ", 1000.0), ("cal", 4.184), ("kcal", 4184.0), ("Wh", 3600.0), ("kWh", 3.6e6)] },
+    Category { name: "Power", units: &[("W", 1.0), ("kW", 1000.0), ("hp (metric)", 735.49875), ("hp (US)", 745.69987158227)] },
+    Category { name: "Data", units: &[("bit", 0.125), ("B", 1.0), ("KB", 1e3), ("MB", 1e6), ("GB", 1e9), ("TB", 1e12), ("KiB", 1024.0), ("MiB", 1048576.0), ("GiB", 1073741824.0)] },
+    Category { name: "Time", units: &[("s", 1.0), ("min", 60.0), ("h", 3600.0), ("day", 86400.0), ("week", 604800.0), ("year", 31557600.0)] },
 ];
+
+/// Default (from, to) unit per category.
+pub const DEFAULTS: &[(usize, usize)] = &[(0, 1), (3, 7), (2, 5), (0, 1), (1, 3), (1, 3), (1, 2), (2, 5), (3, 4), (1, 2), (4, 3), (1, 2)];
+
+/// Parses the ECB 90-day history XML into (date, rates) points for one currency pair (oldest first).
+pub fn parse_history(xml: &str, from: &str, to: &str) -> Vec<(String, f64)> {
+    let mut out = vec![];
+    for day in xml.split("<Cube time=").skip(1) {
+        let date = day.trim_start_matches(['\'', '"']).chars().take(10).collect::<String>();
+        let rate = |c: &str| -> Option<f64> {
+            if c == "EUR" { return Some(1.0); }
+            let pos = day.find(&format!("currency='{c}'")).or_else(|| day.find(&format!("currency=\"{c}\"")))?;
+            let rest = &day[pos..];
+            let r = rest.split("rate=").nth(1)?.trim_start_matches(['\'', '"']);
+            r.split(['\'', '"']).next()?.parse().ok()
+        };
+        if let (Some(a), Some(b)) = (rate(from), rate(to)) { out.push((date, b / a)); }
+    }
+    out.reverse();
+    out
+}
 
 pub const CURRENCY_CAT: usize = 0;
 pub const TEMP_CAT: usize = 3;
@@ -61,6 +87,12 @@ mod tests {
         assert!((convert(3, 0, 1, 100.0, &None).unwrap() - 212.0).abs() < 1e-9);
         assert!((convert(3, 2, 0, 0.0, &None).unwrap() + 273.15).abs() < 1e-9);
         assert!((convert(6, 1, 0, 36.0, &None).unwrap() - 10.0).abs() < 1e-9);
+    }
+    #[test] fn history() {
+        let xml = "<Cube><Cube time='2026-09-24'><Cube currency='USD' rate='1.2'/></Cube><Cube time='2026-09-23'><Cube currency='USD' rate='1.1'/></Cube></Cube>";
+        let h = parse_history(xml, "EUR", "USD");
+        assert_eq!(h, vec![("2026-09-23".to_string(), 1.1), ("2026-09-24".to_string(), 1.2)]);
+        assert!((convert(10, 4, 3, 1.0, &None).unwrap() - 1000.0).abs() < 1e-9);
     }
     #[test] fn ecb() {
         let xml = "<Cube time='2026-09-23'><Cube currency='USD' rate='1.1000'/><Cube currency='GBP' rate='0.8500'/></Cube>";

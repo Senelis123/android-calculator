@@ -148,8 +148,8 @@ pub fn to_tokens(text: &str) -> Vec<Tok> {
 mod tests {
     use super::*;
     use crate::expr::{display_tokens, Evaluator};
-    fn solve(s: &str) -> Vec<f64> { Evaluator { degrees: true }.solve(&to_tokens(s)).unwrap() }
-    fn calc(s: &str) -> f64 { Evaluator { degrees: true }.eval(&to_tokens(s)).unwrap() }
+    fn solve(s: &str) -> Vec<f64> { Evaluator::new(true).solve(&to_tokens(s)).unwrap() }
+    fn calc(s: &str) -> f64 { Evaluator::new(true).eval(&to_tokens(s)).unwrap() }
     #[test] fn text_to_tokens() {
         assert_eq!(calc("12 + 7 ="), 19.0);
         assert_eq!(calc("3 x 4"), 12.0);
