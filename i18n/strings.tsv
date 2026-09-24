@@ -1,0 +1,326 @@
+en	lt	lv	pl	de	ru	uk
+History	Istorija	Vēsture	Historia	Verlauf	История	Історія
+Scientific	Mokslinis	Zinātniskais	Naukowy	Wissenschaftlich	Инженерный	Інженерний
+Scientific mode	Mokslinis režimas	Zinātniskais režīms	Tryb naukowy	Wissenschaftlicher Modus	Инженерный режим	Інженерний режим
+Converter	Keitiklis	Pārveidotājs	Przelicznik	Umrechner	Конвертер	Конвертер
+VAT	PVM	PVN	VAT	MwSt	НДС	ПДВ
+Photo	Foto	Foto	Zdjęcie	Foto	Фото	Фото
+VAT and tips	PVM ir arbatpinigiai	PVN un dzeramnauda	VAT i napiwki	MwSt und Trinkgeld	НДС и чаевые	ПДВ і чайові
+Choose a unit	Pasirinkite vienetą	Izvēlieties mērvienību	Wybierz jednostkę	Einheit wählen	Выберите единицу	Виберіть одиницю
+Settings	Nustatymai	Iestatījumi	Ustawienia	Einstellungen	Настройки	Налаштування
+Photo problem	Foto uždavinys	Uzdevums no foto	Zadanie ze zdjęcia	Aufgabe vom Foto	Задача по фото	Задача з фото
+Choose a photo	Pasirinkite nuotrauką	Izvēlieties foto	Wybierz zdjęcie	Foto wählen	Выберите фото	Виберіть фото
+Clear	Išvalyti	Notīrīt	Wyczyść	Löschen	Очистить	Очистити
+Tip	Arbatpinigiai	Dzeramnauda	Napiwek	Trinkgeld	Чаевые	Чайові
+Update rates	Atnaujinti kursus	Atjaunināt kursus	Aktualizuj kursy	Kurse aktualisieren	Обновить курсы	Оновити курси
+Recognized	Atpažinta	Atpazīts	Rozpoznano	Erkannt	Распознано	Розпізнано
+Recognition failed: {}	Atpažinti nepavyko: {}	Atpazīšana neizdevās: {}	Rozpoznanie nie powiodło się: {}	Erkennung fehlgeschlagen: {}	Не удалось распознать: {}	Не вдалося розпізнати: {}
+Recognizing… (a few seconds)	Atpažįstama… (kelios sekundės)	Atpazīst… (dažas sekundes)	Rozpoznawanie… (kilka sekund)	Wird erkannt… (einige Sekunden)	Распознавание… (несколько секунд)	Розпізнавання… (кілька секунд)
+Automatic	Automatinė	Automātiski	Automatyczny	Automatisch	Автоматически	Автоматично
+Tap a row to move the result to the calculator.	Bakstelėkite eilutę, kad rezultatą perkeltumėte į skaičiuotuvą.	Pieskarieties rindai, lai pārnestu rezultātu uz kalkulatoru.	Dotknij wiersza, aby przenieść wynik do kalkulatora.	Tippe auf eine Zeile, um das Ergebnis in den Rechner zu übernehmen.	Нажмите на строку, чтобы перенести результат в калькулятор.	Торкніться рядка, щоб перенести результат у калькулятор.
+Without VAT (amount incl. VAT)	Be PVM (suma su PVM)	Bez PVN (summa ar PVN)	Bez VAT (kwota z VAT)	Ohne MwSt (Betrag inkl. MwSt)	Без НДС (сумма с НДС)	Без ПДВ (сума з ПДВ)
+Divide by {}: x = {} ÷ {}	Daliname iš {}: x = {} ÷ {}	Dalām ar {}: x = {} ÷ {}	Dzielimy przez {}: x = {} ÷ {}	Durch {} teilen: x = {} ÷ {}	Делим на {}: x = {} ÷ {}	Ділимо на {}: x = {} ÷ {}
+Split between people	Dalinti asmenims	Sadalīt starp cilvēkiem	Podziel na osoby	Auf Personen aufteilen	Разделить на людей	Поділити на людей
+European Central Bank rates, {}. {}	Europos centrinio banko kursai, {}. {}	Eiropas Centrālās bankas kursi, {}. {}	Kursy Europejskiego Banku Centralnego, {}. {}	Kurse der Europäischen Zentralbank, {}. {}	Курсы Европейского центрального банка, {}. {}	Курси Європейського центрального банку, {}. {}
+Take photo	Fotografuoti	Fotografēt	Zrób zdjęcie	Foto aufnehmen	Сфотографировать	Сфотографувати
+History is empty. Your calculations will appear here.	Istorija tuščia. Čia matysite atliktus skaičiavimus.	Vēsture ir tukša. Šeit redzēsiet aprēķinus.	Historia jest pusta. Tu pojawią się obliczenia.	Der Verlauf ist leer. Hier erscheinen deine Rechnungen.	История пуста. Здесь появятся ваши вычисления.	Історія порожня. Тут з'являться ваші обчислення.
+From gallery	Iš galerijos	No galerijas	Z galerii	Aus Galerie	Из галереи	З галереї
+Total	Iš viso	Kopā	Razem	Gesamt	Итого	Разом
+From: {}  ▾	Iš: {}  ▾	No: {}  ▾	Z: {}  ▾	Von: {}  ▾	Из: {}  ▾	З: {}  ▾
+To: {}  ▾	Į: {}  ▾	Uz: {}  ▾	Na: {}  ▾	Nach: {}  ▾	В: {}  ▾	У: {}  ▾
+Off	Išjungta	Izslēgts	Wyłączone	Aus	Выкл.	Вимк.
+No number in clipboard	Iškarpinėje nėra skaičiaus	Starpliktuvē nav skaitļa	Brak liczby w schowku	Keine Zahl in der Zwischenablage	В буфере нет числа	У буфері немає числа
+If recognition is wrong, tap "Edit in calculator", fix it and press "=".	Jei atpažinta neteisingai, bakstelėkite „Taisyti skaičiuotuve“, pataisykite ir spauskite „=“.	Ja atpazīts nepareizi, pieskarieties "Labot kalkulatorā", izlabojiet un nospiediet "=".	Jeśli rozpoznano błędnie, dotknij „Edytuj w kalkulatorze”, popraw i naciśnij „=”.	Falls falsch erkannt, tippe auf „Im Rechner bearbeiten“, korrigiere und drücke „=“.	Если распознано неверно, нажмите «Изменить в калькуляторе», исправьте и нажмите «=».	Якщо розпізнано неправильно, натисніть «Змінити в калькуляторі», виправте й натисніть «=».
+Angle unit	Kampų vienetai	Leņķa mērvienība	Jednostka kąta	Winkeleinheit	Единицы углов	Одиниці кутів
+Copy	Kopijuoti	Kopēt	Kopiuj	Kopieren	Копировать	Копіювати
+Rates not downloaded yet. Internet needed. {}	Kursai dar neatsisiųsti. Reikia interneto. {}	Kursi vēl nav lejupielādēti. Vajag internetu. {}	Kursy jeszcze nie pobrane. Potrzebny internet. {}	Kurse noch nicht geladen. Internet nötig. {}	Курсы ещё не загружены. Нужен интернет. {}	Курси ще не завантажені. Потрібен інтернет. {}
+Quadratic equation: a = {}, b = {}, c = {}	Kvadratinė lygtis: a = {}, b = {}, c = {}	Kvadrātvienādojums: a = {}, b = {}, c = {}	Równanie kwadratowe: a = {}, b = {}, c = {}	Quadratische Gleichung: a = {}, b = {}, c = {}	Квадратное уравнение: a = {}, b = {}, c = {}	Квадратне рівняння: a = {}, b = {}, c = {}
+Degrees	Laipsniai	Grādi	Stopnie	Grad	Градусы	Градуси
+Updates: github.com/{}\nCalculator written in Rust.	Naujiniai: github.com/{}\nSkaičiuotuvas parašytas Rust kalba.	Atjauninājumi: github.com/{}\nKalkulators rakstīts Rust valodā.	Aktualizacje: github.com/{}\nKalkulator napisany w Rust.	Updates: github.com/{}\nRechner in Rust geschrieben.	Обновления: github.com/{}\nКалькулятор написан на Rust.	Оновлення: github.com/{}\nКалькулятор написаний на Rust.
+Take a photo of a printed problem, e.g. "2x + 3 = 11" or "125 : 5 =". The app finds the problem in the photo and solves it.\n\nWorks offline.	Nufotografuokite spausdintą uždavinį, pvz. „2x + 3 = 11“ ar „125 : 5 =“. Programa suras uždavinį nuotraukoje ir jį išspręs.\n\nVeikia be interneto.	Nofotografējiet drukātu uzdevumu, piem. "2x + 3 = 11" vai "125 : 5 =". Lietotne atradīs uzdevumu foto un to atrisinās.\n\nDarbojas bez interneta.	Zrób zdjęcie drukowanego zadania, np. „2x + 3 = 11” lub „125 : 5 =”. Aplikacja znajdzie zadanie na zdjęciu i je rozwiąże.\n\nDziała offline.	Fotografiere eine gedruckte Aufgabe, z. B. „2x + 3 = 11“ oder „125 : 5 =“. Die App findet die Aufgabe im Foto und löst sie.\n\nFunktioniert offline.	Сфотографируйте печатную задачу, например «2x + 3 = 11» или «125 : 5 =». Приложение найдёт задачу на фото и решит её.\n\nРаботает без интернета.	Сфотографуйте друковану задачу, напр. «2x + 3 = 11» або «125 : 5 =». Застосунок знайде задачу на фото й розв'яже її.\n\nПрацює без інтернету.
+Copied	Nukopijuota	Nokopēts	Skopiowano	Kopiert	Скопировано	Скопійовано
+No problem found in the photo.	Nuotraukoje neradau uždavinio.	Foto netika atrasts uzdevums.	Nie znaleziono zadania na zdjęciu.	Keine Aufgabe im Foto gefunden.	Задача на фото не найдена.	Задачу на фото не знайдено.
+No problem found in the photo. Move closer so the numbers are sharp.	Nuotraukoje neradau uždavinio. Fotografuokite arčiau, kad skaičiai būtų ryškūs.	Foto netika atrasts uzdevums. Fotografējiet tuvāk, lai skaitļi būtu asi.	Nie znaleziono zadania. Zrób zdjęcie bliżej, aby liczby były ostre.	Keine Aufgabe gefunden. Geh näher heran, damit die Zahlen scharf sind.	Задача не найдена. Снимите ближе, чтобы цифры были чёткими.	Задачу не знайдено. Знімайте ближче, щоб цифри були чіткими.
+VAT {} %	PVM {} %	PVN {} %	VAT {} %	MwSt {} %	НДС {} %	ПДВ {} %
+VAT from amount	PVM nuo sumos	PVN no summas	VAT od kwoty	MwSt vom Betrag	НДС от суммы	ПДВ від суми
+VAT inside amount incl. VAT	PVM sumoje su PVM	PVN summā ar PVN	VAT w kwocie z VAT	MwSt im Betrag inkl. MwSt	НДС в сумме с НДС	ПДВ у сумі з ПДВ
+Move terms: {}x = {}	Perkeliame narius: {}x = {}	Pārnesam locekļus: {}x = {}	Przenosimy wyrazy: {}x = {}	Terme umstellen: {}x = {}	Переносим члены: {}x = {}	Переносимо члени: {}x = {}
+Move result to calculator	Perkelti rezultatą į skaičiuotuvą	Pārnest rezultātu uz kalkulatoru	Przenieś wynik do kalkulatora	Ergebnis in den Rechner	Перенести результат в калькулятор	Перенести результат у калькулятор
+Radians	Radianai	Radiāni	Radiany	Bogenmaß	Радианы	Радіани
+No real solutions	Realių sprendinių nėra	Nav reālu atrisinājumu	Brak rozwiązań rzeczywistych	Keine reellen Lösungen	Нет действительных решений	Немає дійсних розв'язків
+Value is taken from the calculator display.	Reikšmė imama iš skaičiuotuvo ekrano.	Vērtība tiek ņemta no kalkulatora ekrāna.	Wartość jest pobierana z ekranu kalkulatora.	Der Wert kommt aus der Rechneranzeige.	Значение берётся с экрана калькулятора.	Значення береться з екрана калькулятора.
+No solutions	Sprendinių nėra	Nav atrisinājumu	Brak rozwiązań	Keine Lösungen	Нет решений	Немає розв'язків
+With VAT (+{} %)	Su PVM (+{} %)	Ar PVN (+{} %)	Z VAT (+{} %)	Mit MwSt (+{} %)	С НДС (+{} %)	З ПДВ (+{} %)
+Amount (from calculator)	Suma (iš skaičiuotuvo)	Summa (no kalkulatora)	Kwota (z kalkulatora)	Betrag (vom Rechner)	Сумма (из калькулятора)	Сума (з калькулятора)
+Edit in calculator	Taisyti skaičiuotuve	Labot kalkulatorā	Edytuj w kalkulatorze	Im Rechner bearbeiten	Изменить в калькуляторе	Змінити в калькуляторі
+Dark	Tamsi	Tumšs	Ciemny	Dunkel	Тёмная	Темна
+Theme	Tema	Motīvs	Motyw	Design	Тема	Тема
+Checking for updates…	Tikrinami naujiniai…	Pārbauda atjauninājumus…	Sprawdzanie aktualizacji…	Suche nach Updates…	Проверка обновлений…	Перевірка оновлень…
+Check	Tikrinti	Pārbaudīt	Sprawdź	Prüfen	Проверить	Перевірити
+Check for updates	Tikrinti naujinius	Pārbaudīt atjauninājumus	Sprawdź aktualizacje	Nach Updates suchen	Проверить обновления	Перевірити оновлення
+Any x works	Tinka bet koks x	Der jebkurš x	Każde x jest rozwiązaniem	Jedes x ist Lösung	Подходит любой x	Підходить будь-який x
+Problem	Uždavinys	Uzdevums	Zadanie	Aufgabe	Задача	Задача
+Version	Versija	Versija	Wersja	Version	Версия	Версія
+Vibrate on tap	Vibracija paspaudus	Vibrācija pieskaroties	Wibracja przy dotyku	Vibration beim Tippen	Вибрация при нажатии	Вібрація при натисканні
+Per person	Vienam asmeniui	Uz vienu cilvēku	Na osobę	Pro Person	На человека	На людину
+On	Įjungta	Ieslēgts	Włączone	An	Вкл.	Увімк.
+Pasted	Įklijuota	Ielīmēts	Wklejono	Eingefügt	Вставлено	Вставлено
+Paste	Įklijuoti	Ielīmēt	Wklej	Einfügen	Вставить	Вставити
+Light	Šviesi	Gaišs	Jasny	Hell	Светлая	Світла
+Language	Kalba	Valoda	Język	Sprache	Язык	Мова
+Phone language	Telefono kalba	Tālruņa valoda	Język telefonu	Telefonsprache	Язык телефона	Мова телефону
+Updating rates…	Atnaujinami kursai…	Atjaunina kursus…	Aktualizacja kursów…	Kurse werden aktualisiert…	Обновление курсов…	Оновлення курсів…
+Downloading {}…	Atsisiunčiamas {}…	Lejupielādē {}…	Pobieranie {}…	Lade {}…	Загрузка {}…	Завантаження {}…
+Clipboard is empty	Iškarpinė tuščia	Starpliktuve ir tukša	Schowek jest pusty	Zwischenablage ist leer	Буфер обмена пуст	Буфер обміну порожній
+Allow the app to see photos and try again.	Leiskite programai matyti nuotraukas ir bandykite dar kartą.	Atļaujiet lietotnei redzēt foto un mēģiniet vēlreiz.	Zezwól aplikacji na dostęp do zdjęć i spróbuj ponownie.	Erlaube der App den Zugriff auf Fotos und versuche es erneut.	Разрешите приложению доступ к фото и попробуйте снова.	Дозвольте застосунку доступ до фото й спробуйте ще раз.
+Update {} - tap to install	Naujinys {} - bakstelėkite įdiegti	Atjauninājums {} - pieskarieties, lai instalētu	Aktualizacja {} - dotknij, aby zainstalować	Update {} - zum Installieren tippen	Обновление {} - нажмите для установки	Оновлення {} - натисніть, щоб встановити
+Could not open the camera	Nepavyko atidaryti kameros	Neizdevās atvērt kameru	Nie udało się otworzyć aparatu	Kamera konnte nicht geöffnet werden	Не удалось открыть камеру	Не вдалося відкрити камеру
+Could not open the photo	Nepavyko atidaryti nuotraukos	Neizdevās atvērt foto	Nie udało się otworzyć zdjęcia	Foto konnte nicht geöffnet werden	Не удалось открыть фото	Не вдалося відкрити фото
+Could not update rates (showing last known)	Nepavyko atnaujinti kursų (rodomi paskutiniai žinomi)	Neizdevās atjaunināt kursus (rāda pēdējos zināmos)	Nie udało się zaktualizować kursów (ostatnie znane)	Kurse nicht aktualisiert (letzte bekannte)	Не удалось обновить курсы (последние известные)	Не вдалося оновити курси (останні відомі)
+No photos found	Nuotraukų nerasta	Foto nav atrasti	Nie znaleziono zdjęć	Keine Fotos gefunden	Фото не найдены	Фото не знайдено
+Confirm installing {}	Patvirtinkite {} diegimą	Apstipriniet {} instalēšanu	Potwierdź instalację {}	Installation von {} bestätigen	Подтвердите установку {}	Підтвердіть встановлення {}
+{} (tap)	{} (bakstelėkite)	{} (pieskarieties)	{} (dotknij)	{} (tippen)	{} (нажмите)	{} (натисніть)
+Loading…	Įkeliama…	Ielādē…	Ładowanie…	Wird geladen…	Загрузка…	Завантаження…
+Currency	Valiuta	Valūta	Waluta	Währung	Валюта	Валюта
+Length	Ilgis	Garums	Długość	Länge	Длина	Довжина
+Weight	Svoris	Svars	Waga	Gewicht	Вес	Вага
+Temperature	Temperatūra	Temperatūra	Temperatura	Temperatur	Температура	Температура
+Volume	Tūris	Tilpums	Objętość	Volumen	Объём	Об'єм
+Area	Plotas	Laukums	Powierzchnia	Fläche	Площадь	Площа
+Speed	Greitis	Ātrums	Prędkość	Geschwindigkeit	Скорость	Швидкість
+Take the photo and come back - it will be in the list	Nufotografuokite ir grįžkite - nuotrauka bus sąraše	Nofotografējiet un atgriezieties - foto būs sarakstā	Zrób zdjęcie i wróć - będzie na liście	Foto aufnehmen und zurückkehren - es erscheint in der Liste	Сделайте фото и вернитесь - оно будет в списке	Зробіть фото й поверніться - воно буде в списку
+Division by zero	Dalyba iš nulio	Dalīšana ar nulli	Dzielenie przez zero	Division durch null	Деление на ноль	Ділення на нуль
+Error	Klaida	Kļūda	Błąd	Fehler	Ошибка	Помилка
+Too complex	Per sudėtinga	Pārāk sarežģīti	Zbyt złożone	Zu komplex	Слишком сложно	Занадто складно
+Could not start the download	Nepavyko pradėti atsisiuntimo	Neizdevās sākt lejupielādi	Nie udało się rozpocząć pobierania	Download konnte nicht starten	Не удалось начать загрузку	Не вдалося почати завантаження
+Download failed	Atsisiųsti nepavyko	Lejupielāde neizdevās	Pobieranie nie powiodło się	Download fehlgeschlagen	Загрузка не удалась	Завантаження не вдалося
+Could not open the installer	Nepavyko atidaryti diegimo	Neizdevās atvērt instalētāju	Nie udało się otworzyć instalatora	Installer konnte nicht geöffnet werden	Не удалось открыть установщик	Не вдалося відкрити інсталятор
+2 unknowns	2 nežinomieji	2 nezināmie	2 niewiadome	2 Unbekannte	2 неизвестных	2 невідомі
+3 unknowns	3 nežinomieji	3 nezināmie	3 niewiadome	3 Unbekannte	3 неизвестных	3 невідомі
+2×2	2×2	2×2	2×2	2×2	2×2	2×2
+3×3	3×3	3×3	3×3	3×3	3×3	3×3
+Add	Pridėti	Pievienot	Dodaj	Hinzufügen	Добавить	Додати
+Add days	Pridėti dienas	Pieskaitīt dienas	Dodaj dni	Tage addieren	Прибавить дни	Додати дні
+Again	Dar kartą	Vēlreiz	Jeszcze raz	Nochmal	Ещё раз	Ще раз
+Age	Amžius	Vecums	Wiek	Alter	Возраст	Вік
+Amount	Suma	Summa	Kwota	Betrag	Сумма	Сума
+Annuity	Anuitetas	Anuitāte	Raty równe	Annuität	Аннуитет	Ануїтет
+BMI	KMI	ĶMI	BMI	BMI	ИМТ	ІМТ
+Binary	Dvejetainė	Binārā	Dwójkowy	Binär	Двоичная	Двійкова
+Category	Kategorija	Kategorija	Kategoria	Kategorie	Категория	Категорія
+Change	Pokytis	Izmaiņa	Zmiana	Änderung	Изменение	Зміна
+Change %	Pokytis %	Izmaiņa %	Zmiana %	Änderung %	Изменение %	Зміна %
+Coin	Moneta	Monēta	Moneta	Münze	Монета	Монета
+Consumption l/100 km	Sąnaudos l/100 km	Patēriņš l/100 km	Spalanie l/100 km	Verbrauch l/100 km	Расход л/100 км	Витрата л/100 км
+Count	Kiekis	Skaits	Liczba	Anzahl	Количество	Кількість
+Date	Data	Datums	Data	Datum	Дата	Дата
+Date calculator	Datų skaičiuoklė	Datumu kalkulators	Kalkulator dat	Datumsrechner	Калькулятор дат	Калькулятор дат
+Day	Diena	Diena	Dzień	Tag	День	День
+Day 2	Diena 2	Diena 2	Dzień 2	Tag 2	День 2	День 2
+Days	Dienos	Dienas	Dni	Tage	Дни	Дні
+Days between	Dienų tarp	Dienas starp	Dni pomiędzy	Tage dazwischen	Дней между	Днів між
+Decimal	Dešimtainė	Decimālā	Dziesiętny	Dezimal	Десятичная	Десяткова
+Decimal places	Skaitmenys po kablelio	Cipari aiz komata	Miejsca po przecinku	Nachkommastellen	Знаков после запятой	Знаків після коми
+Decimal sign	Dešimtainis ženklas	Decimālzīme	Separator dziesiętny	Dezimalzeichen	Десятичный знак	Десятковий знак
+Deposit	Indėlis	Noguldījums	Wkład	Einlage	Вклад	Вклад
+Determinant	Determinantas	Determinants	Wyznacznik	Determinante	Определитель	Визначник
+Dice	Kauliukas	Kauliņš	Kostka	Würfel	Кубик	Кубик
+Digit grouping	Skaitmenų grupavimas	Ciparu grupēšana	Grupowanie cyfr	Zifferngruppierung	Группировка цифр	Групування цифр
+Discount	Nuolaida	Atlaide	Rabat	Rabatt	Скидка	Знижка
+Discount %	Nuolaida %	Atlaide %	Rabat %	Rabatt %	Скидка %	Знижка %
+Distance km	Atstumas km	Attālums km	Dystans km	Strecke km	Расстояние км	Відстань км
+Done	Baigta	Gatavs	Gotowe	Fertig	Готово	Готово
+Down payment	Pradinė įmoka	Pirmā iemaksa	Wkład własny	Anzahlung	Первый взнос	Перший внесок
+Each pays	Moka	Maksā	Płaci	Zahlt	Платит	Платить
+Employer cost	Darbo vietos kaina	Darba devēja izmaksas	Koszt pracodawcy	Arbeitgeberkosten	Стоимость для работодателя	Вартість для роботодавця
+Enter numbers	Įveskite skaičius	Ievadiet skaitļus	Wpisz liczby	Zahlen eingeben	Введите числа	Введіть числа
+Estimate for 2026: 20% income tax monthly; above 36 average wages a year the extra is taxed at 25-32% in the yearly declaration.	2026 m. apytikslis skaičiavimas: kas mėnesį 20 % GPM; metinėms pajamoms viršijus 36 VDU, perviršis apmokestinamas 25-32 % per metinę deklaraciją.	Aptuvens aprēķins Lietuvai 2026. g.: katru mēnesi 20 % IIN; ja gada ienākumi pārsniedz 36 vidējās algas, pārsniegumam gada deklarācijā piemēro 25-32 %.	Szacunek dla Litwy 2026: co miesiąc 20% podatku; powyżej 36 średnich pensji rocznie nadwyżka jest opodatkowana 25-32% w rocznym zeznaniu.	Schätzung für Litauen 2026: monatlich 20 % Einkommensteuer; über 36 Durchschnittslöhnen im Jahr wird der Überschuss in der Jahreserklärung mit 25-32 % besteuert.	Оценка для Литвы 2026: ежемесячно 20 % подоходного налога; при годовом доходе выше 36 средних зарплат излишек облагается 25-32 % в годовой декларации.	Оцінка для Литви 2026: щомісяця 20 % податку; якщо річний дохід перевищує 36 середніх зарплат, надлишок оподатковується 25-32 % у річній декларації.
+Extra discount %	Papildoma nuolaida %	Papildu atlaide %	Dodatkowy rabat %	Zusatzrabatt %	Доп. скидка %	Дод. знижка %
+Factors	Daugikliai	Reizinātāji	Czynniki	Faktoren	Множители	Множники
+Final amount	Galutinė suma	Galīgā summa	Kwota końcowa	Endbetrag	Итоговая сумма	Підсумкова сума
+First payment	Pirma įmoka	Pirmais maksājums	Pierwsza rata	Erste Rate	Первый платёж	Перший платіж
+From	Nuo	No	Od	Von	От	Від
+From binary	Iš dvejetainės	No binārās	Z dwójkowego	Aus binär	Из двоичной	З двійкової
+From decimal	Iš dešimtainės	No decimālās	Z dziesiętnego	Aus dezimal	Из десятичной	З десяткової
+From hex	Iš šešioliktainės	No heksadecimālās	Z szesnastkowego	Aus hex	Из шестнадцатеричной	З шістнадцяткової
+From octal	Iš aštuntainės	No oktālās	Z ósemkowego	Aus oktal	Из восьмеричной	З вісімкової
+Fuel and trip cost	Kuras ir kelionės kaina	Degviela un ceļa izmaksas	Paliwo i koszt podróży	Sprit und Reisekosten	Топливо и стоимость поездки	Пальне і вартість поїздки
+Fuel needed	Reikės kuro	Vajadzīgā degviela	Potrzebne paliwo	Benötigter Sprit	Нужно топлива	Потрібно пального
+Fuel price €/l	Kuro kaina €/l	Degvielas cena €/l	Cena paliwa €/l	Spritpreis €/l	Цена топлива €/л	Ціна пального €/л
+GCD	DBD	LKD	NWD	ggT	НОД	НСД
+GCD / LCM / primes	DBD / MBK / pirminiai	LKD / MKD / pirmskaitļi	NWD / NWW / liczby pierwsze	ggT / kgV / Primzahlen	НОД / НОК / простые	НСД / НСК / прості
+Graph	Grafikas	Grafiks	Wykres	Graph	График	Графік
+Gross salary	Atlyginimas „ant popieriaus“	Bruto alga	Pensja brutto	Bruttogehalt	Зарплата брутто	Зарплата брутто
+Gross salary €	Atlyginimas „ant popieriaus“ €	Bruto alga €	Pensja brutto €	Bruttogehalt €	Зарплата брутто €	Зарплата брутто €
+Gross → net	Popieriaus → į rankas	Bruto → neto	Brutto → netto	Brutto → netto	Брутто → нетто	Брутто → нетто
+Heads	Herbas	Ģerbonis	Orzeł	Kopf	Орёл	Орел
+Height cm	Ūgis cm	Augums cm	Wzrost cm	Größe cm	Рост см	Зріст см
+Hex	Šešioliktainė	Heksadecimālā	Szesnastkowy	Hex	Шестнадцатеричная	Шістнадцяткова
+Hours	Valandos	Stundas	Godziny	Stunden	Часы	Години
+Hours 2	Valandos 2	Stundas 2	Godziny 2	Stunden 2	Часы 2	Години 2
+In minutes	Minutėmis	Minūtēs	W minutach	In Minuten	В минутах	У хвилинах
+Income tax (GPM)	Pajamų mokestis (GPM)	Ienākuma nodoklis	Podatek dochodowy	Einkommensteuer	Подоходный налог	Податок на доходи
+Interest % per year	Palūkanos % per metus	Procenti % gadā	Oprocentowanie % rocznie	Zinsen % pro Jahr	Процент годовых	Відсоток річних
+Interest earned	Uždirbtos palūkanos	Nopelnītie procenti	Zarobione odsetki	Erhaltene Zinsen	Заработанные проценты	Зароблені відсотки
+Interest paid	Sumokėtos palūkanos	Samaksātie procenti	Zapłacone odsetki	Gezahlte Zinsen	Выплаченные проценты	Сплачені відсотки
+Invalid date	Neteisinga data	Nepareizs datums	Nieprawidłowa data	Ungültiges Datum	Неверная дата	Невірна дата
+Inverse	Atvirkštinė	Inversā	Odwrotna	Inverse	Обратная	Обернена
+LCM	MBK	MKD	NWW	kgV	НОК	НСК
+Last payment	Paskutinė įmoka	Pēdējais maksājums	Ostatnia rata	Letzte Rate	Последний платёж	Останній платіж
+Linear	Linijinis	Lineārs	Raty malejące	Linear	Дифференцированный	Диференційований
+Loan / leasing	Paskola / lizingas	Kredīts / līzings	Kredyt / leasing	Kredit / Leasing	Кредит / лизинг	Кредит / лізинг
+Markup	Antkainis	Uzcenojums	Marża	Aufschlag	Наценка	Націнка
+Matrices	Matricos	Matricas	Macierze	Matrizen	Матрицы	Матриці
+Max	Didžiausias	Maks.	Maks.	Max	Макс.	Макс.
+Mean	Vidurkis	Vidējais	Średnia	Mittelwert	Среднее	Середнє
+Median	Mediana	Mediāna	Mediana	Median	Медиана	Медіана
+Min	Mažiausias	Min.	Min.	Min	Мин.	Мін.
+Minutes	Minutės	Minūtes	Minuty	Minuten	Минуты	Хвилини
+Minutes 2	Minutės 2	Minūtes 2	Minuty 2	Minuten 2	Минуты 2	Хвилини 2
+Mode	Moda	Moda	Dominanta	Modus	Мода	Мода
+Month	Mėnuo	Mēnesis	Miesiąc	Monat	Месяц	Місяць
+Month 2	Mėnuo 2	Mēnesis 2	Miesiąc 2	Monat 2	Месяц 2	Місяць 2
+Monthly compounding	Kas mėnesį	Katru mēnesi	Co miesiąc	Monatlich	Ежемесячно	Щомісяця
+Monthly payment	Mėnesio įmoka	Ikmēneša maksājums	Rata miesięczna	Monatsrate	Ежемесячный платёж	Щомісячний платіж
+Monthly top-up	Mėnesio papildymas	Ikmēneša papildinājums	Miesięczna wpłata	Monatliche Einzahlung	Ежемесячное пополнение	Щомісячне поповнення
+Net salary	Į rankas	Neto alga	Pensja netto	Nettogehalt	Зарплата нетто	Зарплата нетто
+Net → gross	Į rankas → popieriaus	Neto → bruto	Netto → brutto	Netto → brutto	Нетто → брутто	Нетто → брутто
+New price	Nauja kaina	Jaunā cena	Nowa cena	Neuer Preis	Новая цена	Нова ціна
+Next	Kitas	Nākamais	Dalej	Weiter	Далее	Далі
+No	Ne	Nē	Nie	Nein	Нет	Ні
+No single solution	Nėra vieno sprendinio	Nav viena atrisinājuma	Brak jednego rozwiązania	Keine eindeutige Lösung	Нет единственного решения	Немає єдиного розв'язку
+None	Nėra	Nav	Brak	Keine	Нет	Немає
+Normal weight	Normalus svoris	Normāls svars	Prawidłowa waga	Normalgewicht	Нормальный вес	Нормальна вага
+Number	Skaičius	Skaitlis	Liczba	Zahl	Число	Число
+Number A	Skaičius A	Skaitlis A	Liczba A	Zahl A	Число A	Число A
+Number B	Skaičius B	Skaitlis B	Liczba B	Zahl B	Число B	Число B
+Number systems	Skaičiavimo sistemos	Skaitīšanas sistēmas	Systemy liczbowe	Zahlensysteme	Системы счисления	Системи числення
+Obesity	Nutukimas	Aptaukošanās	Otyłość	Adipositas	Ожирение	Ожиріння
+Octal	Aštuntainė	Oktālā	Ósemkowy	Oktal	Восьмеричная	Вісімкова
+Overweight	Antsvoris	Liekais svars	Nadwaga	Übergewicht	Избыточный вес	Надмірна вага
+PSD 6.98%	PSD 6,98 %	PSD 6,98 %	PSD 6,98%	PSD 6,98 %	PSD 6,98 %	PSD 6,98 %
+Pension fund	Pensijų kaupimas	Pensiju uzkrājums	Fundusz emerytalny	Rentenfonds	Пенсионный фонд	Пенсійний фонд
+Pension fund %	Pensijų kaupimas %	Pensiju uzkrājums %	Fundusz emerytalny %	Rentenfonds %	Пенсионный фонд %	Пенсійний фонд %
+People	Žmonės	Cilvēki	Osoby	Personen	Человек	Осіб
+Percent / new value	Procentai / nauja reikšmė	Procenti / jaunā vērtība	Procent / nowa wartość	Prozent / neuer Wert	Процент / новое значение	Відсоток / нове значення
+Percentages	Procentai	Procenti	Procenty	Prozente	Проценты	Відсотки
+Price	Kaina	Cena	Cena	Preis	Цена	Ціна
+Prime	Pirminis	Pirmskaitlis	Pierwsza	Primzahl	Простое	Просте
+Random and dice	Atsitiktinis skaičius ir kauliukas	Nejaušs skaitlis un kauliņš	Losowa liczba i kostka	Zufallszahl und Würfel	Случайное число и кубик	Випадкове число і кубик
+Random number	Atsitiktinis skaičius	Nejaušs skaitlis	Losowa liczba	Zufallszahl	Случайное число	Випадкове число
+Range	Plotis	Diapazons	Rozstęp	Spannweite	Размах	Розмах
+Remove last	Išimti paskutinį	Noņemt pēdējo	Usuń ostatni	Letzten entfernen	Удалить последнее	Видалити останнє
+Result	Rezultatas	Rezultāts	Wynik	Ergebnis	Результат	Результат
+Result in words	Rezultatas žodžiais	Rezultāts vārdos	Wynik słownie	Ergebnis in Worten	Результат словами	Результат словами
+Salary (Lithuania)	Atlyginimas (Lietuva)	Alga (Lietuva)	Pensja (Litwa)	Gehalt (Litauen)	Зарплата (Литва)	Зарплата (Литва)
+Savings deposit	Indėlio palūkanos	Noguldījuma procenti	Lokata	Sparanlage	Вклад	Депозит
+Space	Tarpas	Atstarpe	Spacja	Leerzeichen	Пробел	Пробіл
+Split the bill	Sąskaitos dalijimas	Rēķina dalīšana	Podział rachunku	Rechnung teilen	Разделить счёт	Розділити рахунок
+Statistics	Statistika	Statistika	Statystyka	Statistik	Статистика	Статистика
+Std. deviation (population)	Standartinis nuokrypis (visuma)	Standartnovirze (populācija)	Odchylenie std. (populacja)	Standardabw. (Grundgesamtheit)	Станд. отклонение (генеральное)	Станд. відхилення (генеральне)
+Std. deviation (sample)	Standartinis nuokrypis (imtis)	Standartnovirze (izlase)	Odchylenie std. (próba)	Standardabw. (Stichprobe)	Станд. отклонение (выборка)	Станд. відхилення (вибірка)
+Subtract	Atimti	Atņemt	Odejmij	Subtrahieren	Вычесть	Відняти
+Sum	Suma	Summa	Suma	Summe	Сумма	Сума
+Systems of equations	Lygčių sistemos	Vienādojumu sistēmas	Układy równań	Gleichungssysteme	Системы уравнений	Системи рівнянь
+Tails	Skaičius	Cipars	Reszka	Zahl	Решка	Решка
+Tap a result to use it in the calculator.	Bakstelėkite rezultatą, kad perkeltumėte jį į skaičiuotuvą.	Pieskarieties rezultātam, lai to izmantotu kalkulatorā.	Dotknij wyniku, aby użyć go w kalkulatorze.	Tippe auf ein Ergebnis, um es im Rechner zu verwenden.	Нажмите на результат, чтобы перенести его в калькулятор.	Торкніться результату, щоб перенести його в калькулятор.
+Tax-free amount (NPD)	Neapmokestinamas dydis (NPD)	Neapliekamais minimums	Kwota wolna (NPD)	Freibetrag (NPD)	Необлагаемая сумма (NPD)	Неоподатковувана сума (NPD)
+Time	Laikas	Laiks	Czas	Zeit	Время	Час
+Time calculator	Laiko skaičiuoklė	Laika kalkulators	Kalkulator czasu	Zeitrechner	Калькулятор времени	Калькулятор часу
+Tip 0%	Arbatpinigiai 0 %	Dzeramnauda 0 %	Napiwek 0%	Trinkgeld 0 %	Чаевые 0 %	Чайові 0 %
+Tip 10%	Arbatpinigiai 10 %	Dzeramnauda 10 %	Napiwek 10%	Trinkgeld 10 %	Чаевые 10 %	Чайові 10 %
+Tip 15%	Arbatpinigiai 15 %	Dzeramnauda 15 %	Napiwek 15%	Trinkgeld 15 %	Чаевые 15 %	Чайові 15 %
+Tip 5%	Arbatpinigiai 5 %	Dzeramnauda 5 %	Napiwek 5%	Trinkgeld 5 %	Чаевые 5 %	Чайові 5 %
+To	Iki	Līdz	Do	Bis	До	До
+Tools	Įrankiai	Rīki	Narzędzia	Werkzeuge	Инструменты	Інструменти
+Total paid	Iš viso sumokėta	Kopā samaksāts	Łącznie zapłacono	Insgesamt gezahlt	Всего выплачено	Всього сплачено
+Trip cost	Kelionės kaina	Ceļa izmaksas	Koszt podróży	Reisekosten	Стоимость поездки	Вартість поїздки
+Type an expression with x in the calculator (e.g. x² − 2x − 3), then open Graph.	Skaičiuotuve įveskite išraišką su x (pvz. x² − 2x − 3), tada atidarykite grafiką.	Kalkulatorā ievadiet izteiksmi ar x (piem. x² − 2x − 3), tad atveriet grafiku.	Wpisz w kalkulatorze wyrażenie z x (np. x² − 2x − 3), potem otwórz wykres.	Gib im Rechner einen Ausdruck mit x ein (z. B. x² − 2x − 3) und öffne dann den Graphen.	Введите в калькуляторе выражение с x (напр. x² − 2x − 3), затем откройте график.	Введіть у калькуляторі вираз з x (напр. x² − 2x − 3), потім відкрийте графік.
+Underweight	Per mažas svoris	Nepietiekams svars	Niedowaga	Untergewicht	Недостаточный вес	Недостатня вага
+VSD 12.52%	VSD 12,52 %	VSD 12,52 %	VSD 12,52%	VSD 12,52 %	VSD 12,52 %	VSD 12,52 %
+Value	Reikšmė	Vērtība	Wartość	Wert	Значение	Значення
+Weeks	Savaitės	Nedēļas	Tygodnie	Wochen	Недели	Тижні
+Weight kg	Svoris kg	Svars kg	Waga kg	Gewicht kg	Вес кг	Вага кг
+X is what % of Y	Kiek % sudaro X nuo Y	Cik % X ir no Y	Ile % Y stanowi X	X ist wie viel % von Y	Сколько % X от Y	Скільки % X від Y
+Year	Metai	Gads	Rok	Jahr	Год	Рік
+Year 2	Metai 2	Gads 2	Rok 2	Jahr 2	Год 2	Рік 2
+Yearly compounding	Kas metus	Katru gadu	Co rok	Jährlich	Ежегодно	Щороку
+Years	Metai	Gadi	Lata	Jahre	Лет	Років
+Yes	Taip	Jā	Tak	Ja	Да	Так
+You pay	Mokėsite	Jūs maksāsiet	Zapłacisz	Du zahlst	К оплате	До сплати
+You save	Sutaupysite	Jūs ietaupīsiet	Oszczędzasz	Du sparst	Экономия	Економія
+Zeros	Nuliai	Saknes	Miejsca zerowe	Nullstellen	Нули	Нулі
+or	arba	vai	lub	oder	или	або
+Add to favorites	Pridėti prie mėgstamų	Pievienot izlasei	Dodaj do ulubionych	Zu Favoriten	В избранное	До обраного
+Allow "Display over other apps", then tap again	Leiskite „Rodyti virš kitų programų“ ir bakstelėkite dar kartą	Atļaujiet "Rādīt pāri citām lietotnēm" un pieskarieties vēlreiz	Zezwól na „Wyświetlanie nad innymi aplikacjami”, potem dotknij ponownie	Erlaube „Über anderen Apps einblenden“ und tippe erneut	Разрешите «Поверх других приложений» и нажмите снова	Дозвольте «Поверх інших програм» і натисніть знову
+App icon	Programėlės ikona	Lietotnes ikona	Ikona aplikacji	App-Symbol	Значок приложения	Значок програми
+Backup	Atsarginė kopija	Rezerves kopija	Kopia zapasowa	Sicherung	Резервная копия	Резервна копія
+Backup copied and saved to Downloads	Atsarginė kopija nukopijuota ir išsaugota aplanke „Atsisiuntimai“	Rezerves kopija nokopēta un saglabāta mapē Lejupielādes	Kopia skopiowana i zapisana w Pobranych	Sicherung kopiert und in Downloads gespeichert	Копия скопирована и сохранена в «Загрузки»	Копію скопійовано й збережено в «Завантаження»
+Backup restored	Atsarginė kopija atkurta	Rezerves kopija atjaunota	Kopia przywrócona	Sicherung wiederhergestellt	Резервная копия восстановлена	Резервну копію відновлено
+Behavior	Elgsena	Uzvedība	Zachowanie	Verhalten	Поведение	Поведінка
+Beta versions	Beta versijos	Beta versijas	Wersje beta	Beta-Versionen	Бета-версии	Бета-версії
+Blue	Mėlyna	Zila	Niebieski	Blau	Синий	Синій
+Button size	Mygtukų dydis	Pogu izmērs	Rozmiar przycisków	Tastengröße	Размер кнопок	Розмір кнопок
+Calculator	Skaičiuotuvas	Kalkulators	Kalkulator	Rechner	Калькулятор	Калькулятор
+Check for updates in the background	Tikrinti naujinimus fone	Pārbaudīt atjauninājumus fonā	Sprawdzaj aktualizacje w tle	Im Hintergrund nach Updates suchen	Проверять обновления в фоне	Перевіряти оновлення у фоні
+Checking…	Tikrinama…	Pārbauda…	Sprawdzanie…	Wird geprüft…	Проверка…	Перевірка…
+Classic	Klasikinė	Klasiskā	Klasyczny	Klassisch	Классический	Класичний
+Color	Spalva	Krāsa	Kolor	Farbe	Цвет	Колір
+Could not save the file	Nepavyko išsaugoti failo	Neizdevās saglabāt failu	Nie udało się zapisać pliku	Datei konnte nicht gespeichert werden	Не удалось сохранить файл	Не вдалося зберегти файл
+Could not understand the problem. Try writing it with numbers, e.g. "12 * 3 + 4".	Nepavyko suprasti uždavinio. Pabandykite parašyti skaičiais, pvz. „12 * 3 + 4“.	Neizdevās saprast uzdevumu. Mēģiniet ar cipariem, piem. "12 * 3 + 4".	Nie zrozumiano zadania. Spróbuj zapisać cyframi, np. „12 * 3 + 4”.	Aufgabe nicht verstanden. Versuche es mit Zahlen, z. B. „12 * 3 + 4“.	Не удалось понять задачу. Попробуйте цифрами, напр. «12 * 3 + 4».	Не вдалося зрозуміти задачу. Спробуйте цифрами, напр. «12 * 3 + 4».
+Deleted	Ištrinta	Izdzēsts	Usunięto	Gelöscht	Удалено	Видалено
+Describe the problem here:	Aprašykite problemą čia:	Aprakstiet problēmu šeit:	Opisz problem tutaj:	Beschreibe das Problem hier:	Опишите проблему здесь:	Опишіть проблему тут:
+Export	Eksportuoti	Eksportēt	Eksportuj	Exportieren	Экспорт	Експорт
+Extra large	Labai didelis	Ļoti liels	Bardzo duży	Sehr groß	Очень крупный	Дуже великий
+Favorite	Mėgstamas	Izlase	Ulubione	Favorit	Избранное	Обране
+Floating calculator	Skaičiuotuvas virš programų	Peldošs kalkulators	Pływający kalkulator	Schwebender Rechner	Плавающий калькулятор	Плаваючий калькулятор
+Green	Žalia	Zaļa	Zielony	Grün	Зелёный	Зелений
+High contrast	Didelis kontrastas	Augsts kontrasts	Wysoki kontrast	Hoher Kontrast	Высокий контраст	Високий контраст
+Large	Didelis	Liels	Duży	Groß	Крупный	Великий
+Left hand	Kairei rankai	Kreisajai rokai	Lewa ręka	Linke Hand	Левая рука	Ліва рука
+Listening…	Klausomasi…	Klausās…	Słucham…	Hört zu…	Слушаю…	Слухаю…
+Look	Išvaizda	Izskats	Wygląd	Aussehen	Внешний вид	Вигляд
+No backup in clipboard. Tap Backup first, then copy it back.	Iškarpinėje nėra atsarginės kopijos. Pirma bakstelėkite „Atsarginė kopija“, tada nukopijuokite ją atgal.	Starpliktuvē nav rezerves kopijas. Vispirms pieskarieties "Rezerves kopija", tad nokopējiet to atpakaļ.	Brak kopii w schowku. Najpierw dotknij „Kopia zapasowa”, potem skopiuj ją z powrotem.	Keine Sicherung in der Zwischenablage. Tippe zuerst auf „Sicherung“ und kopiere sie dann zurück.	В буфере нет резервной копии. Сначала нажмите «Резервная копия», затем скопируйте её обратно.	У буфері немає резервної копії. Спершу натисніть «Резервна копія», потім скопіюйте її назад.
+No internet connection	Nėra interneto ryšio	Nav interneta savienojuma	Brak połączenia z internetem	Keine Internetverbindung	Нет подключения к интернету	Немає підключення до інтернету
+Normal	Įprastas	Parasts	Normalny	Normal	Обычный	Звичайний
+Not supported on this phone. The app uses its own offline reader instead (simple problems only).	Šis telefonas to nepalaiko. Programėlė naudoja savo skaitytuvą be interneto (tik paprasti uždaviniai).	Šis tālrunis to neatbalsta. Lietotne izmanto savu bezsaistes lasītāju (tikai vienkārši uzdevumi).	Ten telefon tego nie obsługuje. Aplikacja używa własnego czytnika offline (tylko proste zadania).	Auf diesem Telefon nicht unterstützt. Die App nutzt ihren eigenen Offline-Leser (nur einfache Aufgaben).	Этот телефон не поддерживает. Приложение использует свой офлайн-разбор (только простые задачи).	Цей телефон не підтримує. Програма використовує власний офлайн-розбір (лише прості задачі).
+OK	Gerai	Labi	OK	OK	ОК	ОК
+One-hand mode	Vienos rankos režimas	Vienas rokas režīms	Tryb jednej ręki	Einhandmodus	Режим одной руки	Режим однієї руки
+Open in calculator	Atidaryti skaičiuotuve	Atvērt kalkulatorā	Otwórz w kalkulatorze	Im Rechner öffnen	Открыть в калькуляторе	Відкрити в калькуляторі
+Orange	Oranžinė	Oranža	Pomarańczowy	Orange	Оранжевый	Помаранчевий
+Phone colors	Telefono spalvos	Tālruņa krāsas	Kolory telefonu	Telefonfarben	Цвета телефона	Кольори телефону
+Press animation	Paspaudimo animacija	Nospiešanas animācija	Animacja naciśnięcia	Drück-Animation	Анимация нажатия	Анімація натискання
+Problem report	Pranešimas apie klaidą	Kļūdas ziņojums	Zgłoszenie problemu	Fehlerbericht	Сообщение о проблеме	Повідомлення про проблему
+Purple	Violetinė	Violeta	Fioletowy	Lila	Фиолетовый	Фіолетовий
+Rate history (90 days)	Kurso istorija (90 dienų)	Kursa vēsture (90 dienas)	Historia kursu (90 dni)	Kursverlauf (90 Tage)	История курса (90 дней)	Історія курсу (90 днів)
+Read results aloud	Perskaityti rezultatą balsu	Nolasīt rezultātu balsī	Czytaj wynik na głos	Ergebnis vorlesen	Читать результат вслух	Читати результат уголос
+Ready on this phone. Problems are understood on the phone, nothing is sent to the internet.	Veikia šiame telefone. Uždaviniai suprantami telefone, niekas nesiunčiama į internetą.	Darbojas šajā tālrunī. Uzdevumi tiek saprasti tālrunī, nekas netiek sūtīts internetā.	Działa na tym telefonie. Zadania są rozumiane w telefonie, nic nie trafia do internetu.	Auf diesem Telefon bereit. Aufgaben werden auf dem Telefon verstanden, nichts geht ins Internet.	Готово на этом телефоне. Задачи разбираются на телефоне, ничего не отправляется в интернет.	Готово на цьому телефоні. Задачі розбираються на телефоні, нічого не надсилається в інтернет.
+Red	Raudona	Sarkana	Czerwony	Rot	Красный	Червоний
+Report a problem	Pranešti apie klaidą	Ziņot par kļūdu	Zgłoś problem	Problem melden	Сообщить о проблеме	Повідомити про проблему
+Restore	Atkurti	Atjaunot	Przywróć	Wiederherstellen	Восстановить	Відновити
+Right hand	Dešinei rankai	Labajai rokai	Prawa ręka	Rechte Hand	Правая рука	Права рука
+Say or type a problem in words, e.g. "15 percent of 240" or "a book costs 12 euros, how much do 3 cost".	Pasakykite arba parašykite uždavinį žodžiais, pvz. „15 procentų nuo 240“ arba „knyga kainuoja 12 eurų, kiek kainuoja 3“.	Pasakiet vai uzrakstiet uzdevumu vārdiem, piem. "15 procenti no 240".	Powiedz lub wpisz zadanie słowami, np. „15 procent z 240”.	Sag oder schreib eine Aufgabe in Worten, z. B. „15 Prozent von 240“.	Скажите или напишите задачу словами, напр. «15 процентов от 240».	Скажіть або напишіть задачу словами, напр. «15 відсотків від 240».
+Search	Paieška	Meklēt	Szukaj	Suchen	Поиск	Пошук
+Share	Dalintis	Kopīgot	Udostępnij	Teilen	Поделиться	Поділитися
+Small	Mažas	Mazs	Mały	Klein	Мелкий	Малий
+Solve	Spręsti	Risināt	Rozwiąż	Lösen	Решить	Розв'язати
+Solving…	Sprendžiama…	Risina…	Rozwiązywanie…	Wird gelöst…	Решение…	Розв'язання…
+Sound on tap	Garsas paspaudus	Skaņa nospiežot	Dźwięk przy dotknięciu	Ton beim Tippen	Звук нажатия	Звук натискання
+Speak	Kalbėti	Runāt	Mów	Sprechen	Сказать	Сказати
+Start screen	Pradinis ekranas	Sākuma ekrāns	Ekran startowy	Startbildschirm	Начальный экран	Початковий екран
+Swipe an entry sideways to delete it. ★ keeps it at the top.	Perbraukite įrašą į šoną, kad ištrintumėte. ★ palieka jį viršuje.	Pavelciet ierakstu uz sāniem, lai dzēstu. ★ notur to augšā.	Przesuń wpis w bok, aby go usunąć. ★ trzyma go na górze.	Wische einen Eintrag zur Seite, um ihn zu löschen. ★ hält ihn oben.	Смахните запись в сторону, чтобы удалить. ★ закрепляет её сверху.	Змахніть запис убік, щоб видалити. ★ закріплює його вгорі.
+Tap to type	Bakstelėkite, kad rašytumėte	Pieskarieties, lai rakstītu	Dotknij, aby pisać	Zum Tippen antippen	Нажмите, чтобы ввести	Натисніть, щоб ввести
+Text size	Teksto dydis	Teksta izmērs	Rozmiar tekstu	Textgröße	Размер текста	Розмір тексту
+This phone supports it, but the model is still downloading. Until then the offline reader is used.	Telefonas tai palaiko, bet modelis dar atsisiunčiamas. Iki tol naudojamas skaitytuvas be interneto.	Tālrunis to atbalsta, bet modelis vēl lejupielādējas. Līdz tam tiek izmantots bezsaistes lasītājs.	Telefon to obsługuje, ale model wciąż się pobiera. Do tego czasu używany jest czytnik offline.	Das Telefon unterstützt es, aber das Modell lädt noch. Bis dahin wird der Offline-Leser genutzt.	Телефон поддерживает, но модель ещё загружается. Пока используется офлайн-разбор.	Телефон підтримує, але модель ще завантажується. Поки що використовується офлайн-розбір.
+Type or say a problem first.	Pirma parašykite arba pasakykite uždavinį.	Vispirms uzrakstiet vai pasakiet uzdevumu.	Najpierw wpisz lub powiedz zadanie.	Schreib oder sag zuerst eine Aufgabe.	Сначала введите или скажите задачу.	Спершу введіть або скажіть задачу.
+Understood by Gemini Nano on this phone, calculated by the app. Check that the expression matches the problem.	Suprato Gemini Nano šiame telefone, apskaičiavo programėlė. Patikrinkite, ar išraiška atitinka uždavinį.	Saprata Gemini Nano šajā tālrunī, aprēķināja lietotne. Pārbaudiet, vai izteiksme atbilst uzdevumam.	Zrozumiane przez Gemini Nano w telefonie, policzone przez aplikację. Sprawdź, czy wyrażenie pasuje do zadania.	Von Gemini Nano auf dem Telefon verstanden, von der App berechnet. Prüfe, ob der Ausdruck zur Aufgabe passt.	Понято Gemini Nano на телефоне, посчитано приложением. Проверьте, что выражение соответствует задаче.	Зрозуміло Gemini Nano на телефоні, пораховано програмою. Перевірте, що вираз відповідає задачі.
+Understood offline by the app. Check that the expression matches the problem.	Programėlė suprato be interneto. Patikrinkite, ar išraiška atitinka uždavinį.	Lietotne saprata bezsaistē. Pārbaudiet, vai izteiksme atbilst uzdevumam.	Zrozumiane offline przez aplikację. Sprawdź, czy wyrażenie pasuje do zadania.	Offline von der App verstanden. Prüfe, ob der Ausdruck zur Aufgabe passt.	Понято приложением офлайн. Проверьте, что выражение соответствует задаче.	Зрозуміло програмою офлайн. Перевірте, що вираз відповідає задачі.
+Updates	Naujinimai	Atjauninājumi	Aktualizacje	Updates	Обновления	Оновлення
+Vibration strength	Vibracijos stiprumas	Vibrācijas stiprums	Siła wibracji	Vibrationsstärke	Сила вибрации	Сила вібрації
+Voice input is not available on this phone	Balso įvedimas šiame telefone negalimas	Balss ievade šajā tālrunī nav pieejama	Wprowadzanie głosowe jest niedostępne na tym telefonie	Spracheingabe ist auf diesem Telefon nicht verfügbar	Голосовой ввод недоступен на этом телефоне	Голосове введення недоступне на цьому телефоні
+What's new	Kas naujo	Kas jauns	Co nowego	Neuigkeiten	Что нового	Що нового
+What's new in {}	Kas naujo {}	Kas jauns {}	Co nowego w {}	Neu in {}	Что нового в {}	Що нового в {}
+Word problem	Tekstinis uždavinys	Teksta uzdevums	Zadanie tekstowe	Textaufgabe	Текстовая задача	Текстова задача
+• English plus 6 more languages (Settings → Language)\n• Scientific: 2nd page with inverse and hyperbolic functions, any root and log base, mod, nCr/nPr, EE, fractions, complex numbers (i)\n• Equations: cubic, any function, inequalities (<, >), systems\n• Graphs with derivative and integral\n• Tools: loan, deposit, salary (LT), dates, time, fuel, BMI, bill split, discounts, statistics, matrices, number systems, random/dice\n• Word problems (Gemini Nano when the phone supports it, otherwise offline)\n• History: search, star, notes, export, backup, swipe to delete\n• Look: colors, phone colors, high contrast, button and text size, one-hand mode, icon choice\n• Undo/redo, cursor, Ans, M1-M5, keyboard support\n• Home screen widget, quick tile, floating calculator, voice input, reading results aloud, TalkBack support, background update check	• Anglų ir dar 6 kalbos (Nustatymai → Kalba)\n• Mokslinis: 2-as puslapis su atvirkštinėmis ir hiperbolinėmis funkcijomis, bet kokio laipsnio šaknis ir logaritmo pagrindas, mod, nCr/nPr, EE, trupmenos, kompleksiniai skaičiai (i)\n• Lygtys: kubinės, bet kokios funkcijos, nelygybės (<, >), sistemos\n• Grafikai su išvestine ir integralu\n• Įrankiai: paskola, indėlis, atlyginimas (LT), datos, laikas, kuras, KMI, sąskaitos dalijimas, nuolaidos, statistika, matricos, skaičiavimo sistemos, atsitiktinis skaičius / kauliukas\n• Tekstiniai uždaviniai (Gemini Nano, jei telefonas palaiko, kitaip be interneto)\n• Istorija: paieška, žvaigždutė, pastabos, eksportas, atsarginė kopija, trynimas braukiant\n• Išvaizda: spalvos, telefono spalvos, didelis kontrastas, mygtukų ir teksto dydis, vienos rankos režimas, ikonos pasirinkimas\n• Atšaukti / grąžinti, kursorius, Ans, M1-M5, klaviatūros palaikymas\n• Valdiklis, greita plytelė, plūduriuojantis skaičiuotuvas, balso įvedimas, rezultato skaitymas balsu, TalkBack, naujinimų tikrinimas fone	• Angļu un vēl 6 valodas\n• Zinātniskais režīms, daļskaitļi, kompleksie skaitļi\n• Vienādojumi, nevienādības, sistēmas, grafiki\n• Rīki: kredīts, depozīts, datumi, laiks, degviela, ĶMI, statistika, matricas\n• Teksta uzdevumi (Gemini Nano vai bezsaistē)\n• Vēsture: meklēšana, piezīmes, eksports, rezerves kopija\n• Izskats: krāsas, kontrasts, izmēri, vienas rokas režīms\n• Logrīks, ātrā flīze, peldošs kalkulators, balss ievade, atjauninājumi fonā	• Angielski i 6 innych języków\n• Tryb naukowy, ułamki, liczby zespolone\n• Równania, nierówności, układy, wykresy\n• Narzędzia: kredyt, lokata, daty, czas, paliwo, BMI, statystyka, macierze\n• Zadania tekstowe (Gemini Nano lub offline)\n• Historia: wyszukiwanie, notatki, eksport, kopia zapasowa\n• Wygląd: kolory, kontrast, rozmiary, tryb jednej ręki\n• Widżet, kafelek, pływający kalkulator, głos, aktualizacje w tle	• Englisch und 6 weitere Sprachen\n• Wissenschaftlich, Brüche, komplexe Zahlen\n• Gleichungen, Ungleichungen, Systeme, Graphen\n• Werkzeuge: Kredit, Sparzins, Daten, Zeit, Kraftstoff, BMI, Statistik, Matrizen\n• Textaufgaben (Gemini Nano oder offline)\n• Verlauf: Suche, Notizen, Export, Sicherung\n• Aussehen: Farben, Kontrast, Größen, Einhandmodus\n• Widget, Schnellkachel, schwebender Rechner, Spracheingabe, Updates im Hintergrund	• Английский и ещё 6 языков\n• Инженерный режим, дроби, комплексные числа\n• Уравнения, неравенства, системы, графики\n• Инструменты: кредит, вклад, даты, время, топливо, ИМТ, статистика, матрицы\n• Текстовые задачи (Gemini Nano или офлайн)\n• История: поиск, заметки, экспорт, резервная копия\n• Вид: цвета, контраст, размеры, режим одной руки\n• Виджет, плитка, плавающий калькулятор, голосовой ввод, обновления в фоне	• Англійська та ще 6 мов\n• Інженерний режим, дроби, комплексні числа\n• Рівняння, нерівності, системи, графіки\n• Інструменти: кредит, депозит, дати, час, пальне, ІМТ, статистика, матриці\n• Текстові задачі (Gemini Nano або офлайн)\n• Історія: пошук, нотатки, експорт, резервна копія\n• Вигляд: кольори, контраст, розміри, режим однієї руки\n• Віджет, плитка, плаваючий калькулятор, голосове введення, оновлення у фоні
+Solve as word problem	Spręsti kaip tekstinį	Risināt kā teksta uzdevumu	Rozwiąż jako tekstowe	Als Textaufgabe lösen	Решить как текстовую	Розв'язати як текстову
+Other problems in the photo	Kiti uždaviniai nuotraukoje	Citi uzdevumi fotoattēlā	Inne zadania na zdjęciu	Weitere Aufgaben im Foto	Другие задачи на фото	Інші задачі на фото
