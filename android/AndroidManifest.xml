@@ -16,6 +16,7 @@
         <intent><action android:name="android.intent.action.TTS_SERVICE" /></intent>
     </queries>
     <application
+        android:name=".App"
         android:theme="@style/AppTheme"
         android:label="Calculator"
         android:icon="@mipmap/ic_launcher"
@@ -31,12 +32,18 @@
         </activity>
         <activity-alias android:name=".Icon0" android:targetActivity="android.app.NativeActivity" android:icon="@mipmap/ic_launcher" android:enabled="true" android:exported="true">
             <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
+            <!-- NativeActivity reads lib_name from the component that was launched (the alias), not from the target activity -->
+            <meta-data android:name="android.app.lib_name" android:value="calculator" />
         </activity-alias>
         <activity-alias android:name=".Icon1" android:targetActivity="android.app.NativeActivity" android:icon="@mipmap/ic_launcher_blue" android:enabled="false" android:exported="true">
             <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
+            <!-- NativeActivity reads lib_name from the component that was launched (the alias), not from the target activity -->
+            <meta-data android:name="android.app.lib_name" android:value="calculator" />
         </activity-alias>
         <activity-alias android:name=".Icon2" android:targetActivity="android.app.NativeActivity" android:icon="@mipmap/ic_launcher_dark" android:enabled="false" android:exported="true">
             <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
+            <!-- NativeActivity reads lib_name from the component that was launched (the alias), not from the target activity -->
+            <meta-data android:name="android.app.lib_name" android:value="calculator" />
         </activity-alias>
         <activity android:name=".VoiceActivity" android:theme="@android:style/Theme.Translucent.NoTitleBar" android:exported="false" />
         <service android:name=".FloatingService" android:exported="false" />
@@ -49,5 +56,10 @@
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_info" />
         </receiver>
+        <!-- 2.3.0.1: no library start-up code before the app opens (ML Kit starts only when Gemini Nano is used) -->
+        <provider android:name="com.google.mlkit.common.internal.MlKitInitProvider" android:authorities="${applicationId}.mlkitinitprovider" tools:node="remove" />
+        <provider android:name="androidx.startup.InitializationProvider" android:authorities="${applicationId}.androidx-startup" tools:node="merge">
+            <meta-data android:name="androidx.emoji2.text.EmojiCompatInitializer" tools:node="remove" />
+        </provider>
     </application>
 </manifest>
