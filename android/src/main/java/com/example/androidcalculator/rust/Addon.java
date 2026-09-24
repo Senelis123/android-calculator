@@ -68,11 +68,14 @@ public final class Addon {
 
     public static String updateChecks(Context c, String on) { UpdateJob.schedule(c, "1".equals(on)); return "ok"; }
 
+    /** Crash info for the "the app closed because of an error" screen: system record since the last check. */
+    public static String lastCrash(Context c, String unused) { return Crash.exitInfo(c); }
+
     public static String floating(Context c, String unused) { return FloatingService.start(c); }
 
     /** Gemini Nano: "status" or "ask\t<prompt>". Runs on a background thread (blocking). */
     public static String nano(Context c, String arg) {
         if (Build.VERSION.SDK_INT < 26) return arg.equals("status") ? "unavailable" : null;
-        try { return Nano.call(arg); } catch (Throwable t) { return arg.equals("status") ? "unavailable" : null; }
+        try { return Nano.call(c, arg); } catch (Throwable t) { return arg.equals("status") ? "unavailable" : null; }
     }
 }

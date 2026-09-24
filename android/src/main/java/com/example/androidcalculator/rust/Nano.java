@@ -12,7 +12,9 @@ final class Nano {
         if (model == null) model = GenerativeModelFutures.from(Generation.INSTANCE.getClient());
         return model;
     }
-    static String call(String arg) throws Exception {
+    static String call(android.content.Context c, String arg) throws Exception {
+        // ML Kit is started here (not at app start) so a problem in it cannot stop the app from opening
+        com.google.mlkit.common.sdkinternal.MlKitContext.initializeIfNeeded(c.getApplicationContext());
         if (arg.equals("status")) {
             int s = model().checkStatus().get(10, TimeUnit.SECONDS);
             // FeatureStatus: 0 unavailable, 1 downloadable, 2 downloading, 3 available
