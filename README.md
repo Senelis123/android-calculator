@@ -1,13 +1,20 @@
 # Android Calculator (Rust)
 
-Rust rewrite of the original Java calculator (version 2.2.0.0). 100% Rust, no Java/Kotlin: runs as an
-Android `NativeActivity` (`android-activity` crate) and draws the UI itself.
+Rust rewrite of the original Java calculator (version 2.3.0.0). The app itself is Rust: it runs as an
+Android `NativeActivity` (`android-activity` crate) and draws the UI itself. A small optional Java add-on
+(`android/src/main/java`) adds what needs Android classes: home screen widget, quick settings tile,
+floating calculator, voice input, text-to-speech/TalkBack announcements, background update check and
+Gemini Nano (ML Kit GenAI Prompt API, on-device only). If an add-on feature is missing, the Rust app keeps working.
 
 Features: basic calculator (same behavior as the Java app), operator precedence with live preview,
 scientific mode (brackets, powers, roots, trig, logs, factorial, DEG/RAD), equations with x (linear and
 quadratic), memory keys, history, VAT/tip calculator, unit and currency converter (ECB rates),
 solving a problem from a photo with on-device OCR (`ocrs`, no internet or API key), dark theme,
 vibration, copy/paste, Lithuanian number format, landscape layout, auto-update from GitHub releases.
+2.3: 7 languages (English default), more scientific functions, fractions, complex numbers, cubic
+equations, inequalities, graphs, 16 tools (loan, salary, dates, statistics, matrices...), word problems
+(Gemini Nano when the phone supports it, otherwise an offline reader), history search/notes/backup,
+look settings (colors, contrast, sizes, one-hand mode, icon), beta update channel.
 
 - `src/calc.rs` - basic calculator logic (1:1 port of the old `MainActivity.java`, with tests).
 - `src/expr.rs` - expressions, equation solving, number formatting. `src/convert.rs` - units/currency.
@@ -31,9 +38,9 @@ downloads the APK and opens Android's installer.
 ## Build
 
     rustup target add aarch64-linux-android armv7-linux-androideabi
-    ANDROID_NDK=/path/to/ndk BUILD_TOOLS=/path/to/build-tools/34.0.0 \
-    ANDROID_JAR=/path/to/platforms/android-35/android.jar ./build_apk.sh
+    # needs JDK 17, Gradle 8.9+, ANDROID_HOME with platforms;android-35
+    ANDROID_NDK=/path/to/ndk BUILD_TOOLS=/path/to/build-tools/35.0.0 ./build_apk.sh
 
 Output: `build/calculator-rust.apk` (debug-signed, arm64-v8a + armeabi-v7a, Android 6.0+).
 
-Tests: `cargo test`. Screenshot on a PC: `cargo run --example render_png -- out.png 1 + 2 =`.
+Tests: `cargo test`. Screens on a PC: `cargo run --release --example screens -- out.png 1080x2400 nav:settings`.
