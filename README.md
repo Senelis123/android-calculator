@@ -1,6 +1,6 @@
 # Android Calculator (Rust)
 
-Rust rewrite of the original Java calculator (version 2.3.0.0). The app itself is Rust: it runs as an
+Rust rewrite of the original Java calculator (version 2.4.0.0). The app itself is Rust: it runs as an
 Android `NativeActivity` (`android-activity` crate) and draws the UI itself. A small optional Java add-on
 (`android/src/main/java`) adds what needs Android classes: home screen widget, quick settings tile,
 floating calculator, voice input, text-to-speech/TalkBack announcements, background update check and
@@ -8,10 +8,10 @@ Gemini Nano (ML Kit GenAI Prompt API, on-device only). If an add-on feature is m
 
 Features: basic calculator (same behavior as the Java app), operator precedence with live preview,
 scientific mode (brackets, powers, roots, trig, logs, factorial, DEG/RAD), equations with x (linear and
-quadratic), memory keys, history, VAT/tip calculator, unit and currency converter (ECB rates),
+quadratic), memory keys, history, VAT/tip calculator, unit, currency, cryptocurrency and stock converter (ECB rates plus market quotes),
 solving a problem from a photo with on-device OCR (`ocrs`, no internet or API key), dark theme,
 vibration, copy/paste, Lithuanian number format, landscape layout, auto-update from GitHub releases.
-2.3: 7 languages (English default), more scientific functions, fractions, complex numbers, cubic
+2.4: 7 languages (English default), more scientific functions, fractions, complex numbers, cubic
 equations, inequalities, graphs, 16 tools (loan, salary, dates, statistics, matrices...), word problems
 (Gemini Nano when the phone supports it, otherwise an offline reader), history search/notes/backup,
 look settings (colors, contrast, sizes, one-hand mode, icon), beta update channel.
@@ -44,3 +44,23 @@ downloads the APK and opens Android's installer.
 Output: `build/calculator-rust.apk` (debug-signed, arm64-v8a + armeabi-v7a, Android 6.0+).
 
 Tests: `cargo test`. Screens on a PC: `cargo run --release --example screens -- out.png 1080x2400 nav:settings`.
+
+## Market converter
+
+The converter includes cryptocurrency and stock categories. Market quotes are fetched on demand, cached locally after a successful update, and reused offline. Quotes may be delayed and are informational only.
+
+## 2.4.0.0 additions
+
+- Stocks and cryptocurrency quote screen (informational only), with refresh and 24h change.
+- Angle and fuel-economy conversion.
+- More expression/parser edge-case tests.
+- Exact-fraction result toggle.
+- CI checks for formatting, Clippy and tests.
+- Releases use a dedicated release keystore in GitHub Actions and publish an APK SHA-256 checksum.
+- Market data may be delayed or rate-limited; the calculator does not provide trading recommendations.
+
+### Release secrets
+
+Configure these repository Actions secrets before publishing:
+RELEASE_KEYSTORE_BASE64, RELEASE_KEYSTORE_PASSWORD, RELEASE_KEY_ALIAS.
+Do not commit a production or release keystore to the repository.
