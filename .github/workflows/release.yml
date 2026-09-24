@@ -24,6 +24,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
       - name: Install Rust Android targets
         run: rustup target add aarch64-linux-android armv7-linux-androideabi
 
@@ -33,6 +42,9 @@ jobs:
           V=$(tr -d "[:space:]" < VERSION)
           [ "v$V" = "${GITHUB_REF_NAME}" ] || { echo "Tag ${GITHUB_REF_NAME} != VERSION v$V"; exit 1; }
 
+      - name: Run tests
+        run: cargo test --release --lib
+
       - name: Restore signing key
         run: echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > debug.keystore
 
@@ -40,7 +52,8 @@ jobs:
         run: |
           export ANDROID_NDK="$ANDROID_NDK_LATEST_HOME"
           export BUILD_TOOLS="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)"
-          export ANDROID_JAR="$(ls -d "$ANDROID_HOME"/platforms/android-* | sort -V | tail -1)/android.jar"
+          # Pin the compile SDK to Android 15 (API 35) instead of whatever preview the runner has.
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-35" >/dev/null
           bash build_apk.sh
 
       - name: Publish release
