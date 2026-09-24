@@ -164,6 +164,7 @@ pub struct App {
     pub system_accent: Option<Rgb>,
     pub system_font: f32,
     pub whats_new: bool,
+    pub crash: Option<String>, // error text from the last crash, shown once on start
     pub rate_hist: Option<(String, String, Vec<(String, f64)>)>,
 }
 
@@ -181,7 +182,7 @@ impl App {
         s.conv_cat = s.conv_cat.min(CATEGORIES.len() - 1);
         let a = App { s, tokens: vec![], just_evaluated: false, result: None, screen: Screen::Calc, scroll: 0.0, content_h: 0.0,
             popup: false, banner: None, toast: None, system_dark: false, system_lang: 0, photo: PhotoState::Idle, gallery: vec![],
-            gallery_status: String::new(), rates_status: String::new(), cursor: None, undo: vec![], redo: vec![], show_frac: false, sci_page: 0, tool: 0, tool_mode: 0, fields: vec![], focus: 0, list: vec![], seed: 0x9E3779B97F4A7C15, graph_span: 10.0, rate_hist: None, text_target: None, search: String::new(), ask_text: String::new(), ask_out: None, ask_status: String::new(), nano: String::new(), restore_pending: false, system_accent: None, system_font: 1.0, whats_new: false };
+            gallery_status: String::new(), rates_status: String::new(), cursor: None, undo: vec![], redo: vec![], show_frac: false, sci_page: 0, tool: 0, tool_mode: 0, fields: vec![], focus: 0, list: vec![], seed: 0x9E3779B97F4A7C15, graph_span: 10.0, rate_hist: None, text_target: None, search: String::new(), ask_text: String::new(), ask_out: None, ask_status: String::new(), nano: String::new(), restore_pending: false, system_accent: None, system_font: 1.0, whats_new: false, crash: None };
         a.apply_lang();
         a.apply_format();
         let mut a = a;
@@ -557,6 +558,9 @@ impl App {
             }
             Action::Set("ask_open") => { if let Some((e, _, _)) = &self.ask_out { if let Some(t) = expr::tokenize(e) { self.tokens = t; self.just_evaluated = false; self.result = None; self.screen = Screen::Calc; self.press("="); } } }
             Action::Set("closenew") => self.whats_new = false,
+            Action::Set("crash_close") => self.crash = None,
+            Action::Set("crash_copy") => { if let Some(c) = &self.crash { fx.push(Effect::Copy(format!("Calculator {}\n{}", version(), c))); self.toast = Some(crate::i18n::t("Copied").into()); } }
+            Action::Set("crash_share") => { if let Some(c) = &self.crash { fx.push(Effect::Share(format!("Calculator {}\n{}", version(), c))); } }
             Action::Set("bug") => fx.push(Effect::ReportBug),
             Action::Set("floating") => fx.push(Effect::Floating),
             Action::Set("bgcheck") => { self.s.bg_check = !self.s.bg_check; fx.push(Effect::BgCheck(self.s.bg_check)); fx.push(Effect::Save); }
@@ -811,6 +815,21 @@ impl App {
             out.push(W::Text { r: Rect::new(r.x + 16.0 * d, r.y + 10.0 * d, r.w - 32.0 * d, 36.0 * d), text: crate::i18n::tf("What's new in {}", &[&version()]), px: 19.0 * d, bold: true, c: t.text, align: 0, wrap: false });
             out.push(W::Text { r: Rect::new(r.x + 16.0 * d, r.y + 50.0 * d, r.w - 32.0 * d, r.h - 120.0 * d), text: crate::i18n::t(WHATS_NEW).into(), px: 14.0 * d, bold: false, c: t.text, align: 0, wrap: true });
             out.push(W::Button { r: Rect::new(r.x + 16.0 * d, r.bottom() - 60.0 * d, r.w - 32.0 * d, 46.0 * d), label: crate::i18n::t("OK").into(), px: 16.0 * d, kind: Kind::ChipOn, action: Action::Set("closenew") });
+        }
+        if let Some(c) = &self.crash {
+            let r = Rect::new(16.0 * d, h * 0.12, w - 32.0 * d, h * 0.72);
+            out.push(W::Fill { r: Rect::new(0.0, 0.0, w, h), c: t.shadow, radius: 0.0 });
+            out.push(W::Button { r: Rect::new(0.0, 0.0, w, h), label: String::new(), px: 0.0, kind: Kind::Invisible, action: Action::None });
+            out.push(W::Fill { r, c: t.bg, radius: 14.0 * d });
+            out.push(W::Text { r: Rect::new(r.x + 16.0 * d, r.y + 10.0 * d, r.w - 32.0 * d, 56.0 * d), text: crate::i18n::t("The app closed because of an error").into(), px: 17.0 * d, bold: true, c: t.text, align: 0, wrap: true });
+            out.push(W::Text { r: Rect::new(r.x + 16.0 * d, r.y + 66.0 * d, r.w - 32.0 * d, 40.0 * d), text: crate::i18n::t("Please copy or share this text and send it to the developer.").into(), px: 13.0 * d, bold: false, c: t.text, align: 0, wrap: true });
+            let mut shown: String = c.replace('\t', " ").chars().take(360).collect(); if c.chars().count() > 360 { shown.push_str(" …"); }
+            out.push(W::Text { r: Rect::new(r.x + 16.0 * d, r.y + 112.0 * d, r.w - 32.0 * d, r.h - 190.0 * d), text: shown, px: 11.0 * d, bold: false, c: t.text, align: 0, wrap: true });
+            let bw = (r.w - 32.0 * d - 16.0 * d) / 3.0;
+            let by = r.bottom() - 60.0 * d;
+            out.push(W::Button { r: Rect::new(r.x + 16.0 * d, by, bw, 46.0 * d), label: crate::i18n::t("Copy").into(), px: 14.0 * d, kind: Kind::Chip, action: Action::Set("crash_copy") });
+            out.push(W::Button { r: Rect::new(r.x + 24.0 * d + bw, by, bw, 46.0 * d), label: crate::i18n::t("Share").into(), px: 14.0 * d, kind: Kind::Chip, action: Action::Set("crash_share") });
+            out.push(W::Button { r: Rect::new(r.x + 32.0 * d + 2.0 * bw, by, bw, 46.0 * d), label: crate::i18n::t("OK").into(), px: 14.0 * d, kind: Kind::ChipOn, action: Action::Set("crash_close") });
         }
         Frame { widgets: out, scroll_area, page }
     }

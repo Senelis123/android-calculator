@@ -290,19 +290,28 @@ fn density(a: &AndroidApp) -> f32 { a.config().density().map(|dpi| dpi as f32 / 
 fn android_main(a: AndroidApp) {
     android_logger::init_once(android_logger::Config::default().with_tag("calculator"));
     let data = a.internal_data_path().unwrap_or_else(|| std::path::PathBuf::from("/data/local/tmp"));
+    // crash catcher: a Rust panic writes its message to files/crash.txt before the app closes
+    { let d = data.clone(); std::panic::set_hook(Box::new(move |info| {
+        let msg = format!("Rust panic ({}): {}\n\n", crate::app::version(), info);
+        log::error!("{msg}");
+        if let Ok(mut f) = std::fs::OpenOptions::new().create(true).append(true).open(d.join("crash.txt")) { use std::io::Write; let _ = f.write_all(msg.as_bytes()); }
+    })); }
+    // safe mode: if the last start never drew its first screen, skip the optional start-up extras this time
+    let safe_mode = data.join("starting").exists();
+    let _ = std::fs::write(data.join("starting"), b"1");
+    let crash_text = std::fs::read_to_string(data.join("crash.txt")).unwrap_or_default();
+    if !crash_text.is_empty() { let _ = std::fs::rename(data.join("crash.txt"), data.join("crash-last.txt")); }
     let saved: Saved = std::fs::read_to_string(data.join("saved.json")).ok().and_then(|s| serde_json::from_str(&s).ok()).unwrap_or_default();
     let mut app = App::new(saved);
+    if !crash_text.trim().is_empty() { app.crash = Some(crash_text.trim().to_string()); }
     let fonts = Fonts::new();
     let j = Jvm { vm: a.vm_as_ptr() as usize, act: a.activity_as_ptr() as usize };
     let waker = a.create_waker();
     let wake: Arc<dyn Fn() + Send + Sync> = Arc::new(move || waker.wake());
     let updater = Updater::new(a.vm_as_ptr(), a.activity_as_ptr(), wake.clone());
     updater.check();
-    // phone settings the Java add-on can read: Material You colour and system text size
-    if let Some(h) = crate::addon::call(j, "accent", "") { if let Ok(v) = u32::from_str_radix(h.trim_start_matches('#'), 16) { app.system_accent = Some([(v >> 16) as u8, (v >> 8) as u8, v as u8]); } }
-    if let Some(f) = crate::addon::call(j, "fontScale", "").and_then(|f| f.parse::<f32>().ok()) { app.system_font = f; }
-    app.apply_look();
-    let _ = crate::addon::call(j, "updateChecks", if app.s.bg_check { "1" } else { "0" });
+    let mut first_frame_done = false;
+    let mut dirty_after = false;
     let (tx, rx) = channel::<Msg>();
     let mut window: Option<NativeWindow> = None;
     let (mut quit, mut dirty, mut camera_pending) = (false, true, false);
@@ -441,10 +450,26 @@ fn android_main(a: AndroidApp) {
                         let px = unsafe { std::slice::from_raw_parts_mut(g.bits() as *mut u8, stride * bh * 4) };
                         let mut cv = Canvas { px, w: bw, h: bh, stride };
                         app::draw(&app, &frame, &fonts, &mut cv, d, pressed);
+                        if !first_frame_done {
+                            first_frame_done = true;
+                            let _ = std::fs::remove_file(data.join("starting"));
+                            // optional extras from the Java add-on, only after the app is on screen
+                            if !safe_mode {
+                                if let Some(h) = crate::addon::call(j, "accent", "") { if let Ok(v) = u32::from_str_radix(h.trim_start_matches('#'), 16) { app.system_accent = Some([(v >> 16) as u8, (v >> 8) as u8, v as u8]); } }
+                                if let Some(f) = crate::addon::call(j, "fontScale", "").and_then(|f| f.parse::<f32>().ok()) { app.system_font = f; }
+                                app.apply_look();
+                                let _ = crate::addon::call(j, "updateChecks", if app.s.bg_check { "1" } else { "0" });
+                            }
+                            // the phone's own record of an earlier crash (Android 11+)
+                            if let Some(t) = crate::addon::call(j, "lastCrash", "") { if !t.trim().is_empty() && app.crash.as_deref().map_or(true, |c| !c.contains(t.trim())) {
+                                app.crash = Some(match app.crash.take() { Some(c) => format!("{c}\n\n{}", t.trim()), None => t.trim().to_string() }); } }
+                            dirty_after = true;
+                        }
                     }
                 }
             }
             dirty = false;
+            if dirty_after { dirty_after = false; dirty = true; }
         }
     }
 }
