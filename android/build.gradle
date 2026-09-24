@@ -1,0 +1,45 @@
+plugins { id 'com.android.application' version '8.7.3' }
+
+def ver = file('../VERSION').text.trim()
+def p = ver.tokenize('.').collect { it as int }
+def ks = System.getenv('KEYSTORE') ?: '../debug.keystore'
+
+android {
+    namespace 'com.example.androidcalculator.rust'
+    compileSdk 35
+    defaultConfig {
+        applicationId 'com.example.androidcalculator.rust'
+        minSdk 23
+        targetSdk 34
+        versionCode p[0] * 1000000 + p[1] * 10000 + p[2] * 100 + p[3]
+        versionName ver
+        buildConfigField 'String', 'UPDATE_REPO', "\"${System.getenv('UPDATE_REPO') ?: 'Senelis123/android-calculator'}\""
+    }
+    buildFeatures { buildConfig true }
+    signingConfigs {
+        release { storeFile file(ks); storePassword 'android'; keyAlias 'androiddebugkey'; keyPassword 'android' }
+    }
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
+        }
+    }
+    sourceSets {
+        main {
+            manifest.srcFile 'AndroidManifest.xml'
+            res.srcDirs = ['res']
+            java.srcDirs = ['src/main/java']
+            jniLibs.srcDirs = ['../build/jni']
+        }
+    }
+    packaging { jniLibs { useLegacyPackaging true } }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+    lint { checkReleaseBuilds false; abortOnError false }
+}
+
+dependencies {
+    implementation 'com.google.mlkit:genai-prompt:1.0.0-beta4'
+}
