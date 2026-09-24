@@ -627,7 +627,12 @@ impl App {
             "C" => { f.clear(); }
             "," => { if !hex && !f.contains('.') { if f.is_empty() || f == "-" { f.push('0'); } f.push('.'); } }
             "±" => { if f.starts_with('-') { f.remove(0); } else { f.insert(0, '-'); } }
-            "next" => { let p = vis.iter().position(|v| *v == self.focus).unwrap_or(0); self.focus = vis[(p + 1) % vis.len()]; }
+            "next" => {
+                if !vis.is_empty() {
+                    let p = vis.iter().position(|v| *v == self.focus).unwrap_or(0);
+                    self.focus = vis[(p + 1) % vis.len()];
+                }
+            }
             "add" => {
                 let v = f.replace(',', ".").parse::<f64>();
                 if let Ok(v) = v { if self.list.len() < 200 { self.list.push(v); } f.clear(); }
@@ -747,11 +752,11 @@ pub fn theme(dark: bool) -> Theme {
 
 fn base_theme(dark: bool) -> Theme {
     if dark {
-        Theme { bg: [0x12, 0x12, 0x12], key: [0x2C, 0x2C, 0x2E], key_op: [0x3A, 0x3A, 0x3D], key_eq: [0xE8, 0xE8, 0xE8], key_eq_text: [0x11, 0x11, 0x11], key_text: [0xF0, 0xF0, 0xF0],
-            text: [0xFF, 0xFF, 0xFF], dim: [0x9A, 0x9A, 0x9A], chip: [0x26, 0x26, 0x28], chip_on: [0xE8, 0xE8, 0xE8], chip_on_text: [0x11, 0x11, 0x11], pressed: [0x55, 0x55, 0x58], line: [0x33, 0x33, 0x33], shadow: [0x08, 0x08, 0x08] }
+        Theme { bg: [0x0E, 0x0F, 0x12], key: [0x1D, 0x1F, 0x24], key_op: [0x2B, 0x28, 0x34], key_eq: [0x8D, 0x7C, 0xFF], key_eq_text: [0x13, 0x12, 0x18], key_text: [0xF2, 0xF0, 0xF7],
+            text: [0xFF, 0xFF, 0xFF], dim: [0xA9, 0xA6, 0xB3], chip: [0x1A, 0x1B, 0x20], chip_on: [0x8D, 0x7C, 0xFF], chip_on_text: [0x13, 0x12, 0x18], pressed: [0x3A, 0x3B, 0x44], line: [0x2B, 0x2C, 0x33], shadow: [0x05, 0x06, 0x08] }
     } else {
-        Theme { bg: [0xFF, 0xFF, 0xFF], key: [0xD6, 0xD7, 0xD7], key_op: [0xC4, 0xC6, 0xC6], key_eq: [0x22, 0x22, 0x22], key_eq_text: [0xFF, 0xFF, 0xFF], key_text: [0x21, 0x21, 0x21],
-            text: [0x00, 0x00, 0x00], dim: [0x70, 0x70, 0x70], chip: [0xEE, 0xEE, 0xEE], chip_on: [0x22, 0x22, 0x22], chip_on_text: [0xFF, 0xFF, 0xFF], pressed: [0xA8, 0xA9, 0xA9], line: [0xE2, 0xE2, 0xE2], shadow: [0xB0, 0xB0, 0xB0] }
+        Theme { bg: [0xF7, 0xF7, 0xFA], key: [0xFF, 0xFF, 0xFF], key_op: [0xEB, 0xE8, 0xF7], key_eq: [0x5F, 0x55, 0xD9], key_eq_text: [0xFF, 0xFF, 0xFF], key_text: [0x1E, 0x1E, 0x23],
+            text: [0x1B, 0x1B, 0x1F], dim: [0x6F, 0x6F, 0x78], chip: [0xEA, 0xE9, 0xF0], chip_on: [0x5F, 0x55, 0xD9], chip_on_text: [0xFF, 0xFF, 0xFF], pressed: [0xD7, 0xD5, 0xDF], line: [0xE2, 0xE0, 0xE8], shadow: [0xC4, 0xC1, 0xCB] }
     }
 }
 
@@ -1417,10 +1422,10 @@ pub fn draw(app: &App, frame: &Frame, fonts: &Fonts, cv: &mut Canvas, d: f32, pr
             W::Text { r, text, px, bold, c, align, wrap } => text_in(cv, fonts, *r, text, *px, *bold, *c, *align, *wrap, clip),
             W::Button { r, label, px, kind, .. } => {
                 let (bg, fg, radius, shadow) = match kind {
-                    Kind::Digit => (t.key, t.key_text, 4.0 * d, true),
-                    Kind::Op => (t.key_op, t.key_text, 4.0 * d, true),
-                    Kind::Sci => (t.key_op, t.key_text, 4.0 * d, false),
-                    Kind::Eq => (t.key_eq, t.key_eq_text, 4.0 * d, true),
+                    Kind::Digit => (t.key, t.key_text, 12.0 * d, true),
+                    Kind::Op => (t.key_op, t.key_text, 12.0 * d, true),
+                    Kind::Sci => (t.key_op, t.key_text, 10.0 * d, false),
+                    Kind::Eq => (t.key_eq, t.key_eq_text, 14.0 * d, true),
                     Kind::Flat => (t.bg, t.key_text, 8.0 * d, false),
                     Kind::Chip => (t.chip, t.key_text, 10.0 * d, false),
                     Kind::ChipOn => (t.chip_on, t.chip_on_text, 10.0 * d, false),
@@ -1429,7 +1434,7 @@ pub fn draw(app: &App, frame: &Frame, fonts: &Fonts, cv: &mut Canvas, d: f32, pr
                 };
                 if *kind == Kind::Invisible { if is_pressed { cv.round_rect(*r, 8.0 * d, t.line, clip); } continue; }
                 let mut face = if matches!(kind, Kind::Digit | Kind::Op | Kind::Eq | Kind::Sci) { r.inset(2.0 * d, 3.0 * d) } else { *r };
-                if is_pressed && app.s.animations { face = face.inset(face.w * 0.04, face.h * 0.05); }
+                if is_pressed && app.s.animations { face = face.inset(face.w * 0.025, face.h * 0.035); }
                 if shadow { cv.round_rect(Rect { y: face.y + 1.0 * d, ..face }, radius, t.shadow, clip); }
                 let bg = if is_pressed { t.pressed } else { bg };
                 cv.round_rect(face, radius, bg, clip);
