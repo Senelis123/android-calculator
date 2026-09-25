@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Builds a signed debug APK. Needs: Rust targets aarch64-linux-android + armv7-linux-androideabi,
+# Builds a signed release APK. Needs: Rust targets aarch64-linux-android + armv7-linux-androideabi,
 # Android NDK (ANDROID_NDK), build-tools (BUILD_TOOLS), ANDROID_HOME with platform 35, JDK 17 and Gradle 8.9+.
 set -euo pipefail
 cd "$(dirname "$0")"

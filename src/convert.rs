@@ -17,10 +17,12 @@ pub const CATEGORIES: &[Category] = &[
     Category { name: "Power", units: &[("W", 1.0), ("kW", 1000.0), ("hp (metric)", 735.49875), ("hp (US)", 745.69987158227)] },
     Category { name: "Data", units: &[("bit", 0.125), ("B", 1.0), ("KB", 1e3), ("MB", 1e6), ("GB", 1e9), ("TB", 1e12), ("KiB", 1024.0), ("MiB", 1048576.0), ("GiB", 1073741824.0)] },
     Category { name: "Time", units: &[("s", 1.0), ("min", 60.0), ("h", 3600.0), ("day", 86400.0), ("week", 604800.0), ("year", 31557600.0)] },
+    Category { name: "Angle", units: &[("deg", std::f64::consts::PI / 180.0), ("rad", 1.0), ("grad", std::f64::consts::PI / 200.0), ("arcmin", std::f64::consts::PI / 10800.0), ("arcsec", std::f64::consts::PI / 648000.0)] },
+    Category { name: "Fuel economy", units: &[("L/100 km", 1.0), ("km/L", 1.0), ("mpg US", 1.0), ("mpg UK", 1.0)] },
 ];
 
 /// Default (from, to) unit per category.
-pub const DEFAULTS: &[(usize, usize)] = &[(0, 1), (3, 7), (2, 5), (0, 1), (1, 3), (1, 3), (1, 2), (2, 5), (3, 4), (1, 2), (4, 3), (1, 2)];
+pub const DEFAULTS: &[(usize, usize)] = &[(0, 1), (3, 7), (2, 5), (0, 1), (1, 3), (1, 3), (1, 2), (2, 5), (3, 4), (1, 2), (4, 3), (1, 2), (0, 1), (0, 1)];
 
 /// Parses the ECB 90-day history XML into (date, rates) points for one currency pair (oldest first).
 pub fn parse_history(xml: &str, from: &str, to: &str) -> Vec<(String, f64)> {
@@ -42,6 +44,7 @@ pub fn parse_history(xml: &str, from: &str, to: &str) -> Vec<(String, f64)> {
 
 pub const CURRENCY_CAT: usize = 0;
 pub const TEMP_CAT: usize = 3;
+pub const FUEL_CAT: usize = CATEGORIES.len() - 1;
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq)]
 pub struct Rates { pub date: String, pub rates: Vec<(String, f64)> } // 1 EUR = rate × currency; EUR included
@@ -75,6 +78,22 @@ pub fn convert(cat: usize, from: usize, to: usize, v: f64, rates: &Option<Rates>
         let c = match from { 0 => v, 1 => (v - 32.0) * 5.0 / 9.0, _ => v - 273.15 };
         return Some(match to { 0 => c, 1 => c * 9.0 / 5.0 + 32.0, _ => c + 273.15 });
     }
+    if cat == FUEL_CAT {
+        let l100 = match from {
+            0 => v,
+            1 => 100.0 / v,
+            2 => 235.214583 / v,
+            3 => 282.481053 / v,
+            _ => return None,
+        };
+        return match to {
+            0 => Some(l100),
+            1 => (l100 != 0.0).then_some(100.0 / l100),
+            2 => (l100 != 0.0).then_some(235.214583 / l100),
+            3 => (l100 != 0.0).then_some(282.481053 / l100),
+            _ => None,
+        };
+    }
     let u = CATEGORIES[cat].units;
     Some(v * u.get(from)?.1 / u.get(to)?.1)
 }
@@ -87,6 +106,11 @@ mod tests {
         assert!((convert(3, 0, 1, 100.0, &None).unwrap() - 212.0).abs() < 1e-9);
         assert!((convert(3, 2, 0, 0.0, &None).unwrap() + 273.15).abs() < 1e-9);
         assert!((convert(6, 1, 0, 36.0, &None).unwrap() - 10.0).abs() < 1e-9);
+        let angle = CATEGORIES.iter().position(|c| c.name == "Angle").unwrap();
+        assert!((convert(angle, 0, 1, 180.0, &None).unwrap() - std::f64::consts::PI).abs() < 1e-9);
+        let fuel = FUEL_CAT;
+        assert!((convert(fuel, 0, 1, 5.0, &None).unwrap() - 20.0).abs() < 1e-9);
+        assert!((convert(fuel, 2, 0, 30.0, &None).unwrap() - 7.8404861).abs() < 1e-5);
     }
     #[test] fn history() {
         let xml = "<Cube><Cube time='2026-09-24'><Cube currency='USD' rate='1.2'/></Cube><Cube time='2026-09-23'><Cube currency='USD' rate='1.1'/></Cube></Cube>";

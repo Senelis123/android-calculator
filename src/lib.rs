@@ -4,6 +4,7 @@ pub mod complex;
 pub mod tools;
 pub mod ocr;
 pub mod convert;
+pub mod market;
 pub mod draw;
 pub mod i18n;
 pub mod app;

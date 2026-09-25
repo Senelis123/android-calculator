@@ -1,0 +1,25 @@
+name: Rust CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi
+          components: rustfmt,clippy
+      - name: Format check for new 2.4 market module
+        run: rustfmt --check --edition 2021 src/market.rs
+      - name: Clippy
+        run: cargo clippy --all-targets --all-features -- -D warnings -A clippy::type_complexity -A clippy::too_many_arguments -A clippy::needless_range_loop -A clippy::if_same_then_else -A clippy::possible_missing_else -A clippy::unnecessary_map_or -A clippy::chunks_exact_to_as_chunks
+      - name: Tests
+        run: cargo test --all

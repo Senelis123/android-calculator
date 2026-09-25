@@ -107,7 +107,7 @@ pub mod android {
         let jurl = env.new_string(url)?;
         let u = env.new_object("java/net/URL", "(Ljava/lang/String;)V", &[JValue::Object(&jurl)])?;
         let conn = env.call_method(&u, "openConnection", "()Ljava/net/URLConnection;", &[])?.l()?;
-        for (k, v) in [("Accept", "application/vnd.github+json"), ("User-Agent", "calculator-rust-updater")] {
+        for (k, v) in [("Accept", "application/vnd.github+json"), ("User-Agent", "calculator-rust/2.4")] {
             let (k, v) = (env.new_string(k)?, env.new_string(v)?);
             env.call_method(&conn, "setRequestProperty", "(Ljava/lang/String;Ljava/lang/String;)V", &[JValue::Object(&k), JValue::Object(&v)])?;
         }
