@@ -41,13 +41,13 @@ downloads the APK and opens Android's installer.
     # needs JDK 17, Gradle 8.9+, ANDROID_HOME with platforms;android-35
     ANDROID_NDK=/path/to/ndk BUILD_TOOLS=/path/to/build-tools/35.0.0 ./build_apk.sh
 
-Output: `build/calculator-rust.apk` (debug-signed, arm64-v8a + armeabi-v7a, Android 6.0+).
+Output: `build/calculator-rust.apk` (signed with `KEYSTORE` and `KEY_ALIAS`; local default is a debug key, arm64-v8a + armeabi-v7a, Android 6.0+).
 
 Tests: `cargo test`. Screens on a PC: `cargo run --release --example screens -- out.png 1080x2400 nav:settings`.
 
 ## Market converter
 
-The converter includes cryptocurrency and stock categories. Market quotes are fetched on demand, cached locally after a successful update, and reused offline. Quotes may be delayed and are informational only.
+The Markets screen shows informational cryptocurrency and stock quotes on demand; it clears prior values if a refresh fails and does not show cached prices. Cryptocurrency quotes come from CoinGecko; stock quotes use Yahoo Finance (query1, then query2 fallback). Stock quotes may be rate-limited or unavailable; prices can be delayed.
 
 ## 2.4.0.0 additions
 
@@ -56,7 +56,7 @@ The converter includes cryptocurrency and stock categories. Market quotes are fe
 - More expression/parser edge-case tests.
 - Exact-fraction result toggle.
 - CI checks for formatting, Clippy and tests.
-- Releases use a dedicated release keystore in GitHub Actions and publish an APK SHA-256 checksum.
+- Releases from 2.4 onward use a dedicated release keystore in GitHub Actions and publish an APK SHA-256 checksum. Because 2.3.x was signed with a different key, Android cannot install 2.4 over 2.3.x: export any needed data, uninstall 2.3.x (which deletes local data), then install 2.4. Subsequent releases signed with the same new key can update normally.
 - Market data may be delayed or rate-limited; the calculator does not provide trading recommendations.
 
 ### Release secrets
