@@ -1,6 +1,6 @@
 # Android Calculator (Rust)
 
-Rust rewrite of the original Java calculator (version 2.4.0.0). The app itself is Rust: it runs as an
+Rust rewrite of the original Java calculator (version 2.5.0.0). The app itself is Rust: it runs as an
 Android `NativeActivity` (`android-activity` crate) and draws the UI itself. A small optional Java add-on
 (`android/src/main/java`) adds what needs Android classes: home screen widget, quick settings tile,
 floating calculator, voice input, text-to-speech/TalkBack announcements, background update check and
@@ -49,7 +49,7 @@ Tests: `cargo test`. Screens on a PC: `cargo run --release --example screens -- 
 
 The Markets screen shows informational cryptocurrency and stock quotes on demand; it clears prior values if a refresh fails and does not show cached prices. Cryptocurrency quotes come from CoinGecko; stock quotes use Yahoo Finance (query1, then query2 fallback). Stock quotes may be rate-limited or unavailable; prices can be delayed.
 
-## 2.4.0.0 additions
+## 2.5.0.0 additions
 
 - Stocks and cryptocurrency quote screen (informational only), with refresh and 24h change.
 - Angle and fuel-economy conversion.
