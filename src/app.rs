@@ -137,6 +137,8 @@ pub enum Screen {
     Markets,
     Graph,
     Ask,
+    WhatsNew,
+    MarketDetail,
 }
 
 pub enum PhotoState {
@@ -203,6 +205,8 @@ pub enum Action {
     HwKey(char),
     MarketKind(MarketKind),
     MarketRefresh,
+    MarketOpen(usize),
+    MarketRange(usize),
     None,
 }
 
@@ -228,6 +232,7 @@ pub enum Effect {
     FetchRates,
     FetchRateHistory,
     FetchMarkets(MarketKind),
+    FetchMarketHistory(MarketKind, String, usize),
     CheckUpdate,
     UpdateTap,
     TakePhoto,
@@ -279,6 +284,12 @@ pub struct App {
     pub market_kind: MarketKind,
     pub market_quotes: Vec<Quote>,
     pub market_status: String,
+    pub market_sel: Option<Quote>,
+    pub market_range: usize,
+    pub market_hist: Vec<(f64, f64)>,
+    pub market_hist_status: String,
+    /// System bar / cutout insets in pixels: left, top, right, bottom.
+    pub insets: [f32; 4],
 }
 
 impl Default for App {
@@ -355,6 +366,11 @@ impl App {
             market_kind: MarketKind::Crypto,
             market_quotes: vec![],
             market_status: String::new(),
+            market_sel: None,
+            market_range: 2,
+            market_hist: vec![],
+            market_hist_status: String::new(),
+            insets: [0.0; 4],
             rate_hist: None,
             text_target: None,
             search: String::new(),
@@ -380,6 +396,9 @@ impl App {
         // "What's new" after an update (not on the very first start)
         if a.s.last_version != version() {
             a.whats_new = !a.s.last_version.is_empty();
+            if a.whats_new {
+                a.screen = Screen::WhatsNew;
+            }
             a.s.last_version = version().to_string();
         }
         a.apply_look();
@@ -987,6 +1006,7 @@ impl App {
                     Screen::PickUnit { .. } => Screen::Converter,
                     Screen::Gallery => Screen::Photo,
                     Screen::Tool | Screen::Vat | Screen::Markets => Screen::Tools,
+                    Screen::MarketDetail => Screen::Markets,
                     _ => Screen::Calc,
                 };
             }
@@ -1084,6 +1104,32 @@ impl App {
                 self.market_kind = *k;
                 self.market_status = crate::i18n::t("Loading market data…").into();
                 fx.push(Effect::FetchMarkets(*k));
+            }
+            Action::MarketOpen(i) => {
+                if let Some(q) = self.market_quotes.get(*i).cloned() {
+                    self.market_sel = Some(q);
+                    self.market_hist.clear();
+                    self.screen = Screen::MarketDetail;
+                    self.scroll = 0.0;
+                    self.market_hist_status = crate::i18n::t("Loading…").into();
+                    fx.push(Effect::FetchMarketHistory(
+                        self.market_kind,
+                        self.market_sel.as_ref().map(|q| q.id.clone()).unwrap_or_default(),
+                        self.market_range,
+                    ));
+                }
+            }
+            Action::MarketRange(r) => {
+                self.market_range = (*r).min(crate::market::RANGES.len() - 1);
+                if let Some(q) = &self.market_sel {
+                    self.market_hist.clear();
+                    self.market_hist_status = crate::i18n::t("Loading…").into();
+                    fx.push(Effect::FetchMarketHistory(
+                        self.market_kind,
+                        q.id.clone(),
+                        self.market_range,
+                    ));
+                }
             }
             Action::MarketRefresh => {
                 self.market_status = crate::i18n::t("Refreshing market data…").into();
@@ -1234,7 +1280,10 @@ impl App {
                 self.restore_pending = true;
                 fx.push(Effect::RequestPaste);
             }
-            Action::Set("whatsnew") => self.whats_new = true,
+            Action::Set("whatsnew") => {
+                self.screen = Screen::WhatsNew;
+                self.scroll = 0.0;
+            }
             Action::PhotoPick(i) => {
                 if let PhotoState::Done {
                     bbox,
@@ -1316,7 +1365,11 @@ impl App {
                     }
                 }
             }
-            Action::Set("closenew") => self.whats_new = false,
+            Action::Set("closenew") => {
+                self.whats_new = false;
+                self.screen = Screen::Calc;
+                self.scroll = 0.0;
+            }
             Action::Set("crash_close") => self.crash = None,
             Action::Set("crash_copy") => {
                 if let Some(c) = &self.crash {
@@ -1704,20 +1757,30 @@ pub fn font_scale() -> f32 {
 pub fn theme(dark: bool) -> Theme {
     let mut th = base_theme(dark);
     if CONTRAST.load(std::sync::atomic::Ordering::Relaxed) {
-        th = if dark {
+        // High contrast: pure black/white surfaces with neutral grey keys. The accent keeps its own hue
+        // (made lighter on black, darker on white) instead of turning everything yellow.
+        let v = LOOK.load(std::sync::atomic::Ordering::Relaxed);
+        let base: Rgb = if v != 0 {
+            [(v >> 16) as u8, (v >> 8) as u8, v as u8]
+        } else {
+            th.key_eq
+        };
+        let acc = contrast_accent(base, dark);
+        let acc_text: Rgb = if dark { [0, 0, 0] } else { [0xFF, 0xFF, 0xFF] };
+        return if dark {
             Theme {
                 bg: [0, 0, 0],
-                key: [0x1A, 0x1A, 0x1A],
-                key_op: [0x33, 0x33, 0x00],
-                key_eq: [0xFF, 0xE0, 0x00],
-                key_eq_text: [0, 0, 0],
+                key: [0x14, 0x14, 0x14],
+                key_op: [0x38, 0x38, 0x38],
+                key_eq: acc,
+                key_eq_text: acc_text,
                 key_text: [0xFF, 0xFF, 0xFF],
                 text: [0xFF, 0xFF, 0xFF],
-                dim: [0xFF, 0xFF, 0xFF],
-                chip: [0x1A, 0x1A, 0x1A],
-                chip_on: [0xFF, 0xE0, 0x00],
-                chip_on_text: [0, 0, 0],
-                pressed: [0x66, 0x66, 0x66],
+                dim: [0xE0, 0xE0, 0xE0],
+                chip: [0x2A, 0x2A, 0x2A],
+                chip_on: acc,
+                chip_on_text: acc_text,
+                pressed: [0x70, 0x70, 0x70],
                 line: [0xFF, 0xFF, 0xFF],
                 shadow: [0, 0, 0],
             }
@@ -1725,21 +1788,20 @@ pub fn theme(dark: bool) -> Theme {
             Theme {
                 bg: [0xFF, 0xFF, 0xFF],
                 key: [0xFF, 0xFF, 0xFF],
-                key_op: [0xE6, 0xE6, 0xE6],
-                key_eq: [0, 0, 0],
-                key_eq_text: [0xFF, 0xFF, 0xFF],
+                key_op: [0xD6, 0xD6, 0xD6],
+                key_eq: acc,
+                key_eq_text: acc_text,
                 key_text: [0, 0, 0],
                 text: [0, 0, 0],
-                dim: [0, 0, 0],
-                chip: [0xE6, 0xE6, 0xE6],
-                chip_on: [0, 0, 0],
-                chip_on_text: [0xFF, 0xFF, 0xFF],
+                dim: [0x20, 0x20, 0x20],
+                chip: [0xDD, 0xDD, 0xDD],
+                chip_on: acc,
+                chip_on_text: acc_text,
                 pressed: [0x99, 0x99, 0x99],
                 line: [0, 0, 0],
                 shadow: [0, 0, 0],
             }
         };
-        return th;
     }
     let v = LOOK.load(std::sync::atomic::Ordering::Relaxed);
     if v != 0 {
@@ -1754,6 +1816,32 @@ pub fn theme(dark: bool) -> Theme {
         th.key_op = mix(th.key_op, c, if dark { 0.30 } else { 0.22 });
     }
     th
+}
+
+fn luminance(c: Rgb) -> f32 {
+    let f = |v: u8| {
+        let v = v as f32 / 255.0;
+        if v <= 0.03928 {
+            v / 12.92
+        } else {
+            ((v + 0.055) / 1.055).powf(2.4)
+        }
+    };
+    0.2126 * f(c[0]) + 0.7152 * f(c[1]) + 0.0722 * f(c[2])
+}
+
+/// Lightens (dark screens) or darkens (light screens) a color until it has at least 7:1 contrast.
+pub fn contrast_accent(c: Rgb, dark: bool) -> Rgb {
+    let mut c = c;
+    for _ in 0..20 {
+        let l = luminance(c);
+        if (dark && l >= 0.30) || (!dark && l <= 0.10) {
+            break;
+        }
+        let target = if dark { 255.0 } else { 0.0 };
+        c = [0, 1, 2].map(|i| (c[i] as f32 * 0.85 + target * 0.15) as u8);
+    }
+    c
 }
 
 fn base_theme(dark: bool) -> Theme {
@@ -1852,7 +1940,29 @@ pub struct Frame {
 }
 
 impl App {
+    /// Lays out the whole screen inside the system bars: everything is built in the free area and moved
+    /// into place, while the background still covers the full window.
     pub fn build(&mut self, w: f32, h: f32, d: f32) -> Frame {
+        let [l, t, r, b] = self.insets;
+        if l + t + r + b < 1.0 {
+            return self.build_inner(w, h, d);
+        }
+        let (iw, ih) = ((w - l - r).max(1.0), (h - t - b).max(1.0));
+        let mut f = self.build_inner(iw, ih, d);
+        for wd in f.widgets.iter_mut() {
+            shift_xy(wd, l, t);
+        }
+        if let Some(a) = f.scroll_area.as_mut() {
+            a.x += l;
+            a.y += t;
+        }
+        if let Some(W::Fill { r, .. }) = f.widgets.first_mut() {
+            *r = Rect::new(0.0, 0.0, w, h);
+        }
+        f
+    }
+
+    fn build_inner(&mut self, w: f32, h: f32, d: f32) -> Frame {
         let mut out = vec![];
         let t = theme(self.dark());
         out.push(W::Fill {
@@ -1926,61 +2036,6 @@ impl App {
                 c: [0xFF, 0xFF, 0xFF],
                 align: 1,
                 wrap: false,
-            });
-        }
-        if self.whats_new {
-            let r = Rect::new(16.0 * d, h * 0.18, w - 32.0 * d, h * 0.62);
-            out.push(W::Fill {
-                r: Rect::new(0.0, 0.0, w, h),
-                c: t.shadow,
-                radius: 0.0,
-            });
-            out.push(W::Button {
-                r: Rect::new(0.0, 0.0, w, h),
-                label: String::new(),
-                px: 0.0,
-                kind: Kind::Invisible,
-                action: Action::Set("closenew"),
-            });
-            out.push(W::Fill {
-                r,
-                c: t.bg,
-                radius: 14.0 * d,
-            });
-            out.push(W::Text {
-                r: Rect::new(r.x + 16.0 * d, r.y + 10.0 * d, r.w - 32.0 * d, 36.0 * d),
-                text: crate::i18n::tf("What's new in {}", &[&version()]),
-                px: 19.0 * d,
-                bold: true,
-                c: t.text,
-                align: 0,
-                wrap: false,
-            });
-            out.push(W::Text {
-                r: Rect::new(
-                    r.x + 16.0 * d,
-                    r.y + 50.0 * d,
-                    r.w - 32.0 * d,
-                    r.h - 120.0 * d,
-                ),
-                text: crate::i18n::t(WHATS_NEW).into(),
-                px: 14.0 * d,
-                bold: false,
-                c: t.text,
-                align: 0,
-                wrap: true,
-            });
-            out.push(W::Button {
-                r: Rect::new(
-                    r.x + 16.0 * d,
-                    r.bottom() - 60.0 * d,
-                    r.w - 32.0 * d,
-                    46.0 * d,
-                ),
-                label: crate::i18n::t("OK").into(),
-                px: 16.0 * d,
-                kind: Kind::ChipOn,
-                action: Action::Set("closenew"),
             });
         }
         if let Some(c) = &self.crash {
@@ -2535,6 +2590,12 @@ impl App {
             Screen::Markets => crate::i18n::t("Markets"),
             Screen::Graph => crate::i18n::t("Graph"),
             Screen::Ask => crate::i18n::t("Word problem"),
+            Screen::WhatsNew => crate::i18n::t("What's new"),
+            Screen::MarketDetail => "",
+        };
+        let title = match (&self.screen, &self.market_sel) {
+            (Screen::MarketDetail, Some(q)) => format!("{}  {}", q.symbol, q.name),
+            _ => title.to_string(),
         };
         let h = 56.0 * d;
         out.push(W::Button {
@@ -2546,7 +2607,7 @@ impl App {
         });
         out.push(W::Text {
             r: Rect::new(56.0 * d, 0.0, w - 170.0 * d, h),
-            text: title.into(),
+            text: title,
             px: 19.0 * d,
             bold: true,
             c: t.text,
@@ -3776,7 +3837,7 @@ impl App {
                         ),
                     ],
                 );
-                para(out, &mut y, crate::i18n::t("Informational market quotes. Prices can be delayed and data providers may change."), 12.0 * d);
+                para(out, &mut y, crate::i18n::t("Informational market quotes. Tap a line to see its price history. Prices can be delayed and data providers may change."), 12.0 * d);
                 if !self.market_status.is_empty() {
                     para(out, &mut y, &self.market_status, 12.0 * d);
                 }
@@ -3790,18 +3851,18 @@ impl App {
                         15.0 * d,
                     );
                 } else {
-                    for q in &self.market_quotes {
+                    for (qi, q) in self.market_quotes.iter().enumerate() {
                         let change = q
                             .change_pct
                             .map(|v| format!("{:+.2}%", v))
                             .unwrap_or_else(|| "—".into());
-                        let value = format!("{}  {}", expr::display_num(q.price), change);
+                        let value = format!("{}  {}", fmt_price(q.price), change);
                         row(
                             out,
                             &mut y,
                             &format!("{}  {}", q.symbol, q.name),
                             &value,
-                            Action::UseValue(q.price),
+                            Action::MarketOpen(qi),
                         );
                         para(
                             out,
@@ -3810,6 +3871,149 @@ impl App {
                             11.0 * d,
                         );
                     }
+                }
+            }
+            Screen::WhatsNew => {
+                for line in crate::i18n::t(WHATS_NEW).split('\n') {
+                    let px = 14.5 * d;
+                    let lines = (line.chars().count() as f32 * px * 0.6 / (w - 4.0 * d))
+                        .ceil()
+                        .max(1.0);
+                    let hh = lines * px * 1.4 + 8.0 * d;
+                    out.push(W::Text {
+                        r: Rect::new(x, y, w, hh),
+                        text: line.into(),
+                        px,
+                        bold: false,
+                        c: t.text,
+                        align: 0,
+                        wrap: true,
+                    });
+                    y += hh + 4.0 * d;
+                }
+                y += 8.0 * d;
+                out.push(W::Button {
+                    r: Rect::new(x, y, w, 52.0 * d),
+                    label: crate::i18n::t("OK").into(),
+                    px: 17.0 * d,
+                    kind: Kind::ChipOn,
+                    action: Action::Set("closenew"),
+                });
+                y += 64.0 * d;
+            }
+            Screen::MarketDetail => {
+                if let Some(q) = &self.market_sel {
+                    let change = q
+                        .change_pct
+                        .map(|v| format!("{:+.2}%", v))
+                        .unwrap_or_else(|| "—".into());
+                    out.push(W::Text {
+                        r: Rect::new(x, y, w, 44.0 * d),
+                        text: format!("{} {}", fmt_price(q.price), q.currency),
+                        px: 30.0 * d,
+                        bold: true,
+                        c: t.text,
+                        align: 0,
+                        wrap: false,
+                    });
+                    y += 46.0 * d;
+                    out.push(W::Text {
+                        r: Rect::new(x, y, w, 24.0 * d),
+                        text: crate::i18n::tf("{} • 24h change", &[&change]),
+                        px: 14.0 * d,
+                        bold: false,
+                        c: if q.change_pct.unwrap_or(0.0) >= 0.0 {
+                            [0x2E, 0x9E, 0x5B]
+                        } else {
+                            [0xD9, 0x4A, 0x4A]
+                        },
+                        align: 0,
+                        wrap: false,
+                    });
+                    y += 34.0 * d;
+                    let items: Vec<(String, Action, bool)> = crate::market::RANGES
+                        .iter()
+                        .enumerate()
+                        .map(|(i, r)| (r.0.to_string(), Action::MarketRange(i), i == self.market_range))
+                        .collect();
+                    chips(out, &mut y, &items);
+                    let gh = w * 0.75;
+                    let r = Rect::new(x, y, w, gh);
+                    out.push(W::Fill {
+                        r,
+                        c: t.chip,
+                        radius: 8.0 * d,
+                    });
+                    let hist = &self.market_hist;
+                    if hist.len() >= 2 {
+                        let lo = hist.iter().map(|p| p.1).fold(f64::MAX, f64::min);
+                        let hi = hist.iter().map(|p| p.1).fold(f64::MIN, f64::max);
+                        let span = if hi > lo { hi - lo } else { hi.abs().max(1.0) * 0.02 };
+                        let (y0, y1) = (lo - span * 0.08, hi + span * 0.08);
+                        let (t0, t1) = (hist[0].0, hist[hist.len() - 1].0);
+                        let inner = Rect::new(r.x + 8.0 * d, r.y + 26.0 * d, r.w - 16.0 * d, r.h - 50.0 * d);
+                        let sx = |tv: f64| inner.x + ((tv - t0) / (t1 - t0).max(1.0)) as f32 * inner.w;
+                        let sy = |v: f64| inner.y + inner.h - ((v - y0) / (y1 - y0)) as f32 * inner.h;
+                        let mut lines: Vec<(u8, Vec<(f32, f32)>)> = vec![];
+                        for k in 0..=3 {
+                            let gy = inner.y + inner.h * k as f32 / 3.0;
+                            lines.push((2, vec![(inner.x, gy), (inner.right(), gy)]));
+                        }
+                        // thin the series so very long histories stay quick to draw
+                        let step = (hist.len() / 240).max(1);
+                        let mut pts: Vec<(f32, f32)> = hist
+                            .iter()
+                            .step_by(step)
+                            .map(|p| (sx(p.0), sy(p.1)))
+                            .collect();
+                        if let Some(l) = hist.last() {
+                            pts.push((sx(l.0), sy(l.1)));
+                        }
+                        lines.push((1, pts));
+                        out.push(W::Plot { r, lines });
+                        let small = |out: &mut Vec<W>, rr: Rect, text: String, al: u8| {
+                            out.push(W::Text {
+                                r: rr,
+                                text,
+                                px: 11.0 * d,
+                                bold: false,
+                                c: t.dim,
+                                align: al,
+                                wrap: false,
+                            });
+                        };
+                        small(out, Rect::new(r.x + 8.0 * d, r.y + 4.0 * d, r.w - 16.0 * d, 18.0 * d), format!("max {}", fmt_price(hi)), 0);
+                        small(out, Rect::new(r.x + 8.0 * d, r.bottom() - 22.0 * d, r.w - 16.0 * d, 18.0 * d), fmt_ts(t0, self.market_range < 2), 0);
+                        small(out, Rect::new(r.x + 8.0 * d, r.bottom() - 22.0 * d, r.w - 16.0 * d, 18.0 * d), format!("min {}", fmt_price(lo)), 1);
+                        small(out, Rect::new(r.x + 8.0 * d, r.bottom() - 22.0 * d, r.w - 16.0 * d, 18.0 * d), fmt_ts(t1, self.market_range < 2), 2);
+                        y += gh + 10.0 * d;
+                        let first = hist[0].1;
+                        let last = hist[hist.len() - 1].1;
+                        let pct = if first != 0.0 { (last / first - 1.0) * 100.0 } else { 0.0 };
+                        row(out, &mut y, crate::i18n::t("Change in range"), &format!("{:+.2}%", pct), Action::None);
+                        row(out, &mut y, crate::i18n::t("Highest"), &fmt_price(hi), Action::None);
+                        row(out, &mut y, crate::i18n::t("Lowest"), &fmt_price(lo), Action::None);
+                        row(out, &mut y, crate::i18n::t("Start"), &fmt_price(first), Action::None);
+                    } else {
+                        out.push(W::Text {
+                            r: r.inset(12.0 * d, 12.0 * d),
+                            text: self.market_hist_status.clone(),
+                            px: 14.0 * d,
+                            bold: false,
+                            c: t.dim,
+                            align: 1,
+                            wrap: true,
+                        });
+                        y += gh + 10.0 * d;
+                    }
+                    row(
+                        out,
+                        &mut y,
+                        crate::i18n::t("Use price in the calculator"),
+                        "›",
+                        Action::UseValue(q.price),
+                    );
+                    para(out, &mut y, crate::i18n::t("Informational only, not financial advice. Data may be delayed."), 11.0 * d);
                 }
             }
             Screen::Graph => {
@@ -4060,6 +4264,29 @@ impl App {
             Screen::Calc => {}
         }
         y - area.y + 24.0 * d
+    }
+}
+
+fn shift_xy(w: &mut W, dx: f32, dy: f32) {
+    match w {
+        W::Fill { r, .. }
+        | W::Text { r, .. }
+        | W::Button { r, .. }
+        | W::Photo { r }
+        | W::Thumb { r, .. } => {
+            r.x += dx;
+            r.y += dy;
+        }
+        W::Plot { r, lines } => {
+            r.x += dx;
+            r.y += dy;
+            for (_, l) in lines {
+                for p in l {
+                    p.0 += dx;
+                    p.1 += dy;
+                }
+            }
+        }
     }
 }
 
@@ -4334,7 +4561,7 @@ fn poly_text(p: &expr::Poly) -> String {
     poly_text5(&p.0)
 }
 
-pub const WHATS_NEW: &str = "• English plus 6 more languages (Settings → Language)\n• Scientific: 2nd page with inverse and hyperbolic functions, any root and log base, mod, nCr/nPr, EE, fractions, complex numbers (i)\n• Equations: cubic, any function, inequalities (<, >), systems\n• Graphs with derivative and integral\n• Tools: loan, deposit, salary (LT), dates, time, fuel, BMI, bill split, discounts, statistics, matrices, number systems, random/dice\n• Word problems (Gemini Nano when the phone supports it, otherwise offline)\n• History: search, star, notes, export, backup, swipe to delete\n• Look: colors, phone colors, high contrast, button and text size, one-hand mode, icon choice\n• Undo/redo, cursor, Ans, M1-M5, keyboard support\n• Home screen widget, quick tile, floating calculator, voice input, reading results aloud, TalkBack support, background update check";
+pub const WHATS_NEW: &str = "• Step-by-step solutions for equations (Tools → Equation steps)\n• Formula calculator: physics and chemistry with constants\n• Geometry calculator: areas, volumes, triangles, circles\n• Periodic table with all 118 elements\n• 3D graphs: z = f(x, y), drag to rotate\n• Scientific mode: many more pages, constants, functions and conversions\n• Smarter offline word problems (English and Lithuanian)\n• Stocks fixed, tap any stock or coin for a price history chart\n• High contrast no longer tints colors yellow\n• Screen layout respects status bar and navigation bar\n• What's new screen redesigned";
 
 impl App {
     /// Offline or model result for the word-problem screen.
@@ -4354,4 +4581,36 @@ impl App {
             }
         }
     }
+}
+
+/// "13.10" or "13.10 22:05" from unix seconds (UTC).
+pub fn fmt_ts(ts: f64, with_time: bool) -> String {
+    let secs = ts as i64;
+    let days = secs.div_euclid(86400);
+    let rem = secs.rem_euclid(86400);
+    // civil-from-days (Howard Hinnant)
+    let z = days + 719468;
+    let era = z.div_euclid(146097);
+    let doe = z.rem_euclid(146097);
+    let yoe = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;
+    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
+    let mp = (5 * doy + 2) / 153;
+    let day = doy - (153 * mp + 2) / 5 + 1;
+    let month = if mp < 10 { mp + 3 } else { mp - 9 };
+    let year = yoe + era * 400 + if month <= 2 { 1 } else { 0 };
+    if with_time {
+        format!("{:02}.{:02} {:02}:{:02}", day, month, rem / 3600, rem % 3600 / 60)
+    } else {
+        format!("{:04}-{:02}-{:02}", year, month, day)
+    }
+}
+
+/// Price with sensible decimals: 2 for normal prices, more for tiny ones.
+pub fn fmt_price(v: f64) -> String {
+    let r = if v.abs() >= 1.0 {
+        (v * 100.0).round() / 100.0
+    } else {
+        (v * 1e6).round() / 1e6
+    };
+    expr::display_num(r)
 }

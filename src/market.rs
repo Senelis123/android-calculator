@@ -15,6 +15,8 @@ pub enum MarketKind {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Quote {
+    /// Provider id: CoinGecko id for crypto, ticker for stocks (used for the history chart).
+    pub id: String,
     pub symbol: String,
     pub name: String,
     pub price: f64,
@@ -29,6 +31,12 @@ pub const CRYPTOS: &[(&str, &str, &str)] = &[
     ("binancecoin", "BNB", "BNB"),
     ("ripple", "XRP", "XRP"),
     ("dogecoin", "DOGE", "Dogecoin"),
+    ("cardano", "ADA", "Cardano"),
+    ("tron", "TRX", "TRON"),
+    ("avalanche-2", "AVAX", "Avalanche"),
+    ("chainlink", "LINK", "Chainlink"),
+    ("litecoin", "LTC", "Litecoin"),
+    ("polkadot", "DOT", "Polkadot"),
 ];
 
 pub const STOCKS: &[(&str, &str, &str)] = &[
@@ -38,7 +46,90 @@ pub const STOCKS: &[(&str, &str, &str)] = &[
     ("GOOGL", "GOOGL", "Alphabet"),
     ("AMZN", "AMZN", "Amazon"),
     ("TSLA", "TSLA", "Tesla"),
+    ("META", "META", "Meta"),
+    ("NFLX", "NFLX", "Netflix"),
+    ("AMD", "AMD", "AMD"),
+    ("INTC", "INTC", "Intel"),
+    ("DIS", "DIS", "Disney"),
+    ("KO", "KO", "Coca-Cola"),
+    ("MCD", "MCD", "McDonald's"),
+    ("NKE", "NKE", "Nike"),
 ];
+
+/// History ranges shown as chips on the detail screen: (label, CoinGecko days, Yahoo range, Yahoo interval).
+pub const RANGES: &[(&str, &str, &str, &str)] = &[
+    ("1D", "1", "1d", "15m"),
+    ("7D", "7", "5d", "1h"),
+    ("1M", "30", "1mo", "1d"),
+    ("3M", "90", "3mo", "1d"),
+    ("1Y", "365", "1y", "1d"),
+];
+
+pub fn history_url(kind: MarketKind, id: &str, range: usize) -> String {
+    let (_, days, yr, yi) = RANGES[range.min(RANGES.len() - 1)];
+    match kind {
+        MarketKind::Crypto => format!(
+            "https://api.coingecko.com/api/v3/coins/{id}/market_chart?vs_currency=eur&days={days}"
+        ),
+        MarketKind::Stocks => format!(
+            "https://query1.finance.yahoo.com/v8/finance/chart/{id}?range={yr}&interval={yi}"
+        ),
+    }
+}
+
+pub fn history_backup_url(kind: MarketKind, id: &str, range: usize) -> String {
+    let (_, _, yr, yi) = RANGES[range.min(RANGES.len() - 1)];
+    match kind {
+        MarketKind::Crypto => history_url(kind, id, range),
+        MarketKind::Stocks => {
+            format!(
+                "https://query2.finance.yahoo.com/v8/finance/chart/{id}?range={yr}&interval={yi}"
+            )
+        }
+    }
+}
+
+/// Price points (unix seconds, price), oldest first. Empty when the reply is not understood.
+pub fn parse_history(kind: MarketKind, json: &str) -> Vec<(f64, f64)> {
+    let Ok(root): Result<Value, _> = serde_json::from_str(json) else {
+        return vec![];
+    };
+    let mut out = vec![];
+    match kind {
+        MarketKind::Crypto => {
+            if let Some(a) = root.get("prices").and_then(Value::as_array) {
+                for p in a {
+                    let (t, v) = (
+                        p.get(0).and_then(Value::as_f64),
+                        p.get(1).and_then(Value::as_f64),
+                    );
+                    if let (Some(t), Some(v)) = (t, v) {
+                        if v.is_finite() {
+                            out.push((t / 1000.0, v));
+                        }
+                    }
+                }
+            }
+        }
+        MarketKind::Stocks => {
+            let r = root.pointer("/chart/result/0");
+            let ts = r.and_then(|r| r.get("timestamp")).and_then(Value::as_array);
+            let cl = r
+                .and_then(|r| r.pointer("/indicators/quote/0/close"))
+                .and_then(Value::as_array);
+            if let (Some(ts), Some(cl)) = (ts, cl) {
+                for (t, c) in ts.iter().zip(cl.iter()) {
+                    if let (Some(t), Some(c)) = (t.as_f64(), c.as_f64()) {
+                        if c.is_finite() {
+                            out.push((t, c));
+                        }
+                    }
+                }
+            }
+        }
+    }
+    out
+}
 
 pub fn crypto_url() -> String {
     let ids = CRYPTOS
@@ -90,6 +181,7 @@ pub fn parse_crypto(json: &str) -> Vec<Quote> {
             .filter(|v| v.is_finite());
         if let Some(price) = price {
             out.push(Quote {
+                id: (*id).into(),
                 symbol: (*symbol).into(),
                 name: (*name).into(),
                 price,
@@ -137,6 +229,7 @@ pub fn parse_stock(json: &str, fallback_symbol: &str) -> Option<Quote> {
     let symbol = meta.symbol.unwrap_or_else(|| fallback_symbol.to_string());
     let name = meta.short_name.unwrap_or_else(|| symbol.clone());
     Some(Quote {
+        id: fallback_symbol.to_string(),
         symbol,
         name,
         price,
@@ -166,6 +259,19 @@ mod tests {
     fn invalid_stock_price_is_not_shown() {
         let j = r#"{"chart":{"result":[{"meta":{"regularMarketPrice":-1,"currency":"USD"}}]}}"#;
         assert!(parse_stock(j, "AAPL").is_none());
+    }
+    #[test]
+    fn history_parsers() {
+        let c = parse_history(
+            MarketKind::Crypto,
+            r#"{"prices":[[1000000,5.0],[2000000,6.5]]}"#,
+        );
+        assert_eq!(c, vec![(1000.0, 5.0), (2000.0, 6.5)]);
+        let y = r#"{"chart":{"result":[{"timestamp":[1,2,3],"indicators":{"quote":[{"close":[1.0,null,3.0]}]}}]}}"#;
+        assert_eq!(
+            parse_history(MarketKind::Stocks, y),
+            vec![(1.0, 1.0), (3.0, 3.0)]
+        );
     }
     #[test]
     fn yahoo_parser() {

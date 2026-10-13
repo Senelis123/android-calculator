@@ -107,7 +107,9 @@ pub mod android {
         let jurl = env.new_string(url)?;
         let u = env.new_object("java/net/URL", "(Ljava/lang/String;)V", &[JValue::Object(&jurl)])?;
         let conn = env.call_method(&u, "openConnection", "()Ljava/net/URLConnection;", &[])?.l()?;
-        for (k, v) in [("Accept", "application/vnd.github+json"), ("User-Agent", "calculator-rust/2.4")] {
+        // GitHub wants its own Accept type, but other servers (Yahoo Finance answers HTTP 406 to it) need a plain one.
+        let accept = if url.contains("api.github.com") { "application/vnd.github+json" } else { "*/*" };
+        for (k, v) in [("Accept", accept), ("User-Agent", "calculator-rust/2.5")] {
             let (k, v) = (env.new_string(k)?, env.new_string(v)?);
             env.call_method(&conn, "setRequestProperty", "(Ljava/lang/String;Ljava/lang/String;)V", &[JValue::Object(&k), JValue::Object(&v)])?;
         }

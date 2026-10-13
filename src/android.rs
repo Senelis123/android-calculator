@@ -20,6 +20,7 @@ enum Msg {
     RateHist(String, String, Vec<(String, f64)>),
     Rates(Option<crate::convert::Rates>),
     Markets(crate::market::MarketKind, Vec<crate::market::Quote>),
+    MarketHist(String, usize, Vec<(f64, f64)>),
     Gallery(Vec<GalleryItem>, String),
     Photo(PhotoState),
     Paste(String),
@@ -690,6 +691,27 @@ fn effect(
                 Some(Msg::Markets(kind2, quotes))
             }));
         }
+        Effect::FetchMarketHistory(kind, id, range) => {
+            app.market_hist_status = crate::i18n::t("Loading…").into();
+            spawn(Box::new(move || {
+                let first = j
+                    .run(|env, _| http_get(env, &crate::market::history_url(kind, &id, range)))
+                    .flatten()
+                    .map(|b| crate::market::parse_history(kind, &b))
+                    .unwrap_or_default();
+                let pts = if first.len() >= 2 {
+                    first
+                } else {
+                    j.run(|env, _| {
+                        http_get(env, &crate::market::history_backup_url(kind, &id, range))
+                    })
+                    .flatten()
+                    .map(|b| crate::market::parse_history(kind, &b))
+                    .unwrap_or_default()
+                };
+                Some(Msg::MarketHist(id.clone(), range, pts))
+            }));
+        }
         Effect::FetchRateHistory => {
             let c = app.s.conv_cat;
             let names = crate::convert::unit_names(c, &app.s.rates);
@@ -841,6 +863,7 @@ fn android_main(a: AndroidApp) {
     updater.check();
     let mut first_frame_done = false;
     let mut dirty_after = false;
+    let mut insets_dirty = true;
     let (tx, rx) = channel::<Msg>();
     let mut window: Option<NativeWindow> = None;
     let (mut quit, mut dirty, mut camera_pending) = (false, true, false);
@@ -869,6 +892,7 @@ fn android_main(a: AndroidApp) {
             PollEvent::Main(MainEvent::InitWindow { .. }) => {
                 window = a.native_window();
                 dirty = true;
+                insets_dirty = true;
             }
             PollEvent::Main(MainEvent::TerminateWindow { .. }) => {
                 window = None;
@@ -883,6 +907,7 @@ fn android_main(a: AndroidApp) {
             | PollEvent::Main(MainEvent::ConfigChanged { .. })
             | PollEvent::Main(MainEvent::GainedFocus) => {
                 dirty = true;
+                insets_dirty = true;
             }
             PollEvent::Main(MainEvent::Destroy) => {
                 quit = true;
@@ -890,6 +915,16 @@ fn android_main(a: AndroidApp) {
             _ => {}
         });
         let d = density(&a);
+        if insets_dirty && first_frame_done && !safe_mode {
+            insets_dirty = false;
+            if let Some(v) = crate::addon::call(j, "insets", if app.dark() { "dark" } else { "light" }) {
+                let p: Vec<f32> = v.split(',').filter_map(|n| n.trim().parse().ok()).collect();
+                if p.len() == 4 && p != app.insets.to_vec() {
+                    app.insets = [p[0], p[1], p[2], p[3]];
+                    dirty = true;
+                }
+            }
+        }
         let night = matches!(
             a.config().ui_mode_night(),
             ndk::configuration::UiModeNight::Yes
@@ -897,6 +932,7 @@ fn android_main(a: AndroidApp) {
         if night != app.system_dark {
             app.system_dark = night;
             dirty = true;
+            insets_dirty = true;
         }
         let sl = crate::i18n::lang_from_code(&a.config().language().unwrap_or_default());
         if sl != app.system_lang {
@@ -954,6 +990,21 @@ fn android_main(a: AndroidApp) {
                             "Updated. Data may be delayed depending on the provider.",
                         )
                         .into();
+                    }
+                }
+                Msg::MarketHist(id, range, pts) => {
+                    let same = app.market_sel.as_ref().map(|q| q.id == id).unwrap_or(false)
+                        && app.market_range == range;
+                    if same {
+                        if pts.len() < 2 {
+                            app.market_hist.clear();
+                            app.market_hist_status = crate::i18n::t(
+                                "No history received. Check the internet connection and try another range.",
+                            )
+                            .into();
+                        } else {
+                            app.market_hist = pts;
+                        }
                     }
                 }
                 Msg::Gallery(items, st) => {
