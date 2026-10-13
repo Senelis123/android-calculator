@@ -64,6 +64,47 @@ public final class Addon {
         return String.format("#%06X", col & 0xFFFFFF);
     }
 
+    /**
+     * Makes the window edge-to-edge (Android 11+) and returns the system bar / cutout insets in pixels as
+     * "left,top,right,bottom". The Rust UI keeps its content clear of them. arg = "dark" or "light" theme.
+     */
+    public static String insets(Context c, String arg) {
+        if (Build.VERSION.SDK_INT < 30 || !(c instanceof Activity)) return "0,0,0,0";
+        final Activity a = (Activity) c;
+        final boolean dark = "dark".equals(arg);
+        final String[] res = { "0,0,0,0" };
+        final java.util.concurrent.CountDownLatch done = new java.util.concurrent.CountDownLatch(1);
+        a.runOnUiThread(() -> {
+            try {
+                android.view.Window w = a.getWindow();
+                w.setDecorFitsSystemWindows(false);
+                w.setStatusBarColor(0);
+                w.setNavigationBarColor(0);
+                if (Build.VERSION.SDK_INT >= 29) { w.setNavigationBarContrastEnforced(false); w.setStatusBarContrastEnforced(false); }
+                android.view.WindowInsetsController ic = w.getInsetsController();
+                if (ic != null) {
+                    int m = android.view.WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS | android.view.WindowInsetsController.APPEARANCE_LIGHT_NAVIGATION_BARS;
+                    ic.setSystemBarsAppearance(dark ? 0 : m, m);
+                }
+                android.view.WindowInsets wi = w.getDecorView().getRootWindowInsets();
+                int l = 0, t = 0, r = 0, b = 0;
+                if (wi != null) {
+                    android.graphics.Insets in = wi.getInsets(android.view.WindowInsets.Type.systemBars() | android.view.WindowInsets.Type.displayCutout());
+                    l = in.left; t = in.top; r = in.right; b = in.bottom;
+                }
+                if (t == 0) {
+                    android.content.res.Resources rs = a.getResources();
+                    int id = rs.getIdentifier("status_bar_height", "dimen", "android");
+                    if (id > 0) t = rs.getDimensionPixelSize(id);
+                }
+                res[0] = l + "," + t + "," + r + "," + b;
+            } catch (Throwable ignored) {
+            } finally { done.countDown(); }
+        });
+        try { done.await(500, TimeUnit.MILLISECONDS); } catch (InterruptedException ignored) {}
+        return res[0];
+    }
+
     public static String fontScale(Context c, String unused) { return String.valueOf(c.getResources().getConfiguration().fontScale); }
 
     public static String updateChecks(Context c, String on) { UpdateJob.schedule(c, "1".equals(on)); return "ok"; }
