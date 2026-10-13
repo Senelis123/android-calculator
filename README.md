@@ -51,6 +51,10 @@ The Markets screen shows informational cryptocurrency and stock quotes on demand
 
 ## 2.5.0.0 additions
 
+- Fixed stocks, high-contrast colours, What's New screen and safe-area insets; market detail screens with price charts; 6 scientific pages with many constants, functions and conversions; geometry, physics and chemistry tools; periodic table; constants list; step-by-step equation solutions; 3D surface graph.
+
+## 2.4.0.0 additions
+
 - Stocks and cryptocurrency quote screen (informational only), with refresh and 24h change.
 - Angle and fuel-economy conversion.
 - More expression/parser edge-case tests.
