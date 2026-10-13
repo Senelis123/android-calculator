@@ -15,3 +15,4 @@ pub mod update;
 mod android;
 #[cfg(target_os = "android")]
 mod addon;
+pub mod word;

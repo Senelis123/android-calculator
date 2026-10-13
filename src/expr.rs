@@ -1303,6 +1303,15 @@ pub fn eval_text(s: &str) -> Option<f64> {
 /// Offline reading of a spoken or typed problem ("du plius du", "15 procentų nuo 200", "what is 3 times 4").
 /// Number words (EN/LT, 0-999 999) become digits, operator words become symbols. Returns an expression string.
 pub fn text_to_expr(text: &str) -> Option<String> {
+    if let Some(e) = crate::word::word_to_expr(text) {
+        if eval_text(&e).is_some() {
+            return Some(e);
+        }
+    }
+    text_to_expr_basic(text)
+}
+
+fn text_to_expr_basic(text: &str) -> Option<String> {
     let low = text.to_lowercase().replace(['?', '!', '„', '“', '"'], " ");
     // multi-word operators first
     let mut s = format!(" {} ", low);
