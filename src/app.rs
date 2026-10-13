@@ -139,6 +139,11 @@ pub enum Screen {
     Ask,
     WhatsNew,
     MarketDetail,
+    Periodic,
+    Element,
+    Constants,
+    Steps,
+    Graph3D,
 }
 
 pub enum PhotoState {
@@ -207,6 +212,8 @@ pub enum Action {
     MarketRefresh,
     MarketOpen(usize),
     MarketRange(usize),
+    ElementOpen(usize),
+    Surface(usize),
     None,
 }
 
@@ -290,6 +297,11 @@ pub struct App {
     pub market_hist_status: String,
     /// System bar / cutout insets in pixels: left, top, right, bottom.
     pub insets: [f32; 4],
+    pub elem_sel: usize,
+    pub g3_surface: usize,
+    pub g3_yaw: f64,
+    pub g3_pitch: f64,
+    pub g3_span: f64,
 }
 
 impl Default for App {
@@ -371,6 +383,11 @@ impl App {
             market_hist: vec![],
             market_hist_status: String::new(),
             insets: [0.0; 4],
+            elem_sel: 0,
+            g3_surface: 1,
+            g3_yaw: 0.6,
+            g3_pitch: 0.7,
+            g3_span: 3.0,
             rate_hist: None,
             text_target: None,
             search: String::new(),
@@ -1013,6 +1030,8 @@ impl App {
                     Screen::Gallery => Screen::Photo,
                     Screen::Tool | Screen::Vat | Screen::Markets => Screen::Tools,
                     Screen::MarketDetail => Screen::Markets,
+                    Screen::Element => Screen::Periodic,
+                    Screen::Periodic | Screen::Constants | Screen::Steps | Screen::Graph3D => Screen::Tools,
                     _ => Screen::Calc,
                 };
             }
@@ -1137,6 +1156,18 @@ impl App {
                     ));
                 }
             }
+            Action::ElementOpen(i) => {
+                self.elem_sel = (*i).min(crate::science::ELEMENTS.len() - 1);
+                self.screen = Screen::Element;
+                self.scroll = 0.0;
+            }
+            Action::Surface(i) => self.g3_surface = *i,
+            Action::Set("rot_l") => self.g3_yaw -= 0.3,
+            Action::Set("rot_r") => self.g3_yaw += 0.3,
+            Action::Set("rot_u") => self.g3_pitch = (self.g3_pitch + 0.15).min(1.5),
+            Action::Set("rot_d") => self.g3_pitch = (self.g3_pitch - 0.15).max(0.0),
+            Action::Set("g3zoom+") => self.g3_span = (self.g3_span * 0.7).max(0.5),
+            Action::Set("g3zoom-") => self.g3_span = (self.g3_span / 0.7).min(40.0),
             Action::MarketRefresh => {
                 self.market_status = crate::i18n::t("Refreshing market data…").into();
                 fx.push(Effect::FetchMarkets(self.market_kind));
@@ -2601,9 +2632,18 @@ impl App {
             Screen::Ask => crate::i18n::t("Word problem"),
             Screen::WhatsNew => crate::i18n::t("What's new"),
             Screen::MarketDetail => "",
+            Screen::Periodic => crate::i18n::t("Periodic table"),
+            Screen::Element => "",
+            Screen::Constants => crate::i18n::t("Constants"),
+            Screen::Steps => crate::i18n::t("Equation steps"),
+            Screen::Graph3D => crate::i18n::t("3D graph"),
         };
         let title = match (&self.screen, &self.market_sel) {
             (Screen::MarketDetail, Some(q)) => format!("{}  {}", q.symbol, q.name),
+            (Screen::Element, _) => {
+                let e = &crate::science::ELEMENTS[self.elem_sel.min(crate::science::ELEMENTS.len() - 1)];
+                format!("{}  {}", e.0, e.1)
+            }
             _ => title.to_string(),
         };
         let h = 56.0 * d;
@@ -3507,6 +3547,10 @@ impl App {
                     "›",
                     Action::Nav(Screen::Markets),
                 );
+                row(out, &mut y, crate::i18n::t("Equation steps"), "›", Action::Nav(Screen::Steps));
+                row(out, &mut y, crate::i18n::t("3D graph"), "›", Action::Nav(Screen::Graph3D));
+                row(out, &mut y, crate::i18n::t("Periodic table"), "›", Action::Nav(Screen::Periodic));
+                row(out, &mut y, crate::i18n::t("Constants"), "›", Action::Nav(Screen::Constants));
                 for (i, td) in crate::tools::TOOLS.iter().enumerate() {
                     row(
                         out,
@@ -4024,6 +4068,117 @@ impl App {
                     );
                     para(out, &mut y, crate::i18n::t("Informational only, not financial advice. Data may be delayed."), 11.0 * d);
                 }
+            }
+            Screen::Periodic => {
+                for (i, e) in crate::science::ELEMENTS.iter().enumerate() {
+                    row(
+                        out,
+                        &mut y,
+                        &format!("{}  {}  {}", i + 1, e.0, e.1),
+                        &expr::display_num(e.2),
+                        Action::ElementOpen(i),
+                    );
+                }
+            }
+            Screen::Element => {
+                let i = self.elem_sel.min(crate::science::ELEMENTS.len() - 1);
+                let e = &crate::science::ELEMENTS[i];
+                let z = i + 1;
+                out.push(W::Text {
+                    r: Rect::new(x, y, w, 80.0 * d),
+                    text: e.0.to_string(),
+                    px: 64.0 * d,
+                    bold: true,
+                    c: t.text,
+                    align: 0,
+                    wrap: false,
+                });
+                y += 84.0 * d;
+                row(out, &mut y, crate::i18n::t("Atomic number"), &z.to_string(), Action::None);
+                row(out, &mut y, crate::i18n::t("Atomic mass"), &expr::display_num(e.2), Action::UseValue(e.2));
+                row(out, &mut y, crate::i18n::t("Category"), crate::i18n::t(crate::science::category_name(e.3)), Action::None);
+                row(out, &mut y, crate::i18n::t("Period"), &crate::science::period_of(z).to_string(), Action::None);
+                row(out, &mut y, crate::i18n::t("Protons / electrons"), &z.to_string(), Action::None);
+                row(out, &mut y, crate::i18n::t("Neutrons (common isotope)"), &((e.2.round() as i64) - z as i64).max(0).to_string(), Action::None);
+                heading(out, &mut y, crate::i18n::t("Electron configuration"));
+                para(out, &mut y, &crate::science::electron_config(z), 15.0 * d);
+                para(out, &mut y, crate::i18n::t("Tap the atomic mass to use it in the calculator (for molar masses). A few elements have slightly different real configurations."), 11.0 * d);
+                let (pv, nx) = (i.saturating_sub(1), (i + 1).min(crate::science::ELEMENTS.len() - 1));
+                chips(
+                    out,
+                    &mut y,
+                    &[
+                        ("‹".into(), Action::ElementOpen(pv), false),
+                        ("›".into(), Action::ElementOpen(nx), false),
+                    ],
+                );
+            }
+            Screen::Constants => {
+                para(out, &mut y, crate::i18n::t("Tap a constant to use its value in the calculator. They are also on scientific pages 5 and 6."), 12.0 * d);
+                for c in crate::science::CONSTANTS {
+                    let v: f64 = c.2.parse().unwrap_or(0.0);
+                    row(
+                        out,
+                        &mut y,
+                        &format!("{}  {}", c.0, crate::i18n::t(c.1)),
+                        &format!("{} {}", c.2, c.3),
+                        Action::UseValue(v),
+                    );
+                }
+            }
+            Screen::Steps => {
+                let has_x = self.tokens.contains(&Tok::X);
+                if !has_x {
+                    para(out, &mut y, crate::i18n::t("Type an equation with x in the calculator (for example x² − 5x + 6 = 0 or 2x + 3 = 11), then open this screen."), 15.0 * d);
+                } else {
+                    for line in crate::steps::solve_steps(&self.tokens, self.s.degrees) {
+                        let px = 15.0 * d;
+                        let n = (line.chars().count() as f32 * px * 0.6 / (w - 4.0 * d)).ceil().max(1.0);
+                        let hh = n * px * 1.4 + 8.0 * d;
+                        out.push(W::Text {
+                            r: Rect::new(x, y, w, hh),
+                            text: line,
+                            px,
+                            bold: false,
+                            c: t.text,
+                            align: 0,
+                            wrap: true,
+                        });
+                        y += hh + 6.0 * d;
+                    }
+                }
+            }
+            Screen::Graph3D => {
+                let items: Vec<(String, Action, bool)> = crate::science::SURFACES
+                    .iter()
+                    .enumerate()
+                    .map(|(i, n)| (format!("z = {n}"), Action::Surface(i), i == self.g3_surface))
+                    .collect();
+                chips(out, &mut y, &items);
+                let gh = w;
+                let r = Rect::new(x, y, w, gh);
+                out.push(W::Fill { r, c: t.chip, radius: 8.0 * d });
+                let lines3 = crate::science::wireframe(self.g3_surface, self.g3_yaw, self.g3_pitch, self.g3_span);
+                let (cx, cy, sc) = (r.x + r.w / 2.0, r.y + r.h / 2.0, r.w * 0.62);
+                let lines: Vec<(u8, Vec<(f32, f32)>)> = lines3
+                    .into_iter()
+                    .map(|l| (1u8, l.into_iter().map(|(px, py)| (cx + px * sc, cy - py * sc)).collect()))
+                    .collect();
+                out.push(W::Plot { r, lines });
+                y += gh + 8.0 * d;
+                chips(
+                    out,
+                    &mut y,
+                    &[
+                        ("◀".into(), Action::Set("rot_l"), false),
+                        ("▶".into(), Action::Set("rot_r"), false),
+                        ("▲".into(), Action::Set("rot_u"), false),
+                        ("▼".into(), Action::Set("rot_d"), false),
+                        ("+".into(), Action::Set("g3zoom+"), false),
+                        ("−".into(), Action::Set("g3zoom-"), false),
+                    ],
+                );
+                para(out, &mut y, &crate::i18n::tf("x and y from {} to {}", &[&expr::display_num(-self.g3_span), &expr::display_num(self.g3_span)]), 12.0 * d);
             }
             Screen::Graph => {
                 let toks = self.graph_tokens();

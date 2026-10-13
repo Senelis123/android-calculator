@@ -483,3 +483,172 @@ mod tests {
         }
     }
 }
+
+// ---------------- periodic table ----------------
+
+/// symbol, name, atomic mass, category code
+/// (n nonmetal, g noble gas, a alkali metal, e alkaline earth, m metalloid, h halogen,
+///  t transition metal, p post-transition metal, l lanthanide, c actinide, u unknown)
+pub const ELEMENTS: &[(&str, &str, f64, char)] = &[
+    ("H", "Hydrogen", 1.008, 'n'), ("He", "Helium", 4.0026, 'g'), ("Li", "Lithium", 6.94, 'a'),
+    ("Be", "Beryllium", 9.0122, 'e'), ("B", "Boron", 10.81, 'm'), ("C", "Carbon", 12.011, 'n'),
+    ("N", "Nitrogen", 14.007, 'n'), ("O", "Oxygen", 15.999, 'n'), ("F", "Fluorine", 18.998, 'h'),
+    ("Ne", "Neon", 20.180, 'g'), ("Na", "Sodium", 22.990, 'a'), ("Mg", "Magnesium", 24.305, 'e'),
+    ("Al", "Aluminium", 26.982, 'p'), ("Si", "Silicon", 28.085, 'm'), ("P", "Phosphorus", 30.974, 'n'),
+    ("S", "Sulfur", 32.06, 'n'), ("Cl", "Chlorine", 35.45, 'h'), ("Ar", "Argon", 39.948, 'g'),
+    ("K", "Potassium", 39.098, 'a'), ("Ca", "Calcium", 40.078, 'e'), ("Sc", "Scandium", 44.956, 't'),
+    ("Ti", "Titanium", 47.867, 't'), ("V", "Vanadium", 50.942, 't'), ("Cr", "Chromium", 51.996, 't'),
+    ("Mn", "Manganese", 54.938, 't'), ("Fe", "Iron", 55.845, 't'), ("Co", "Cobalt", 58.933, 't'),
+    ("Ni", "Nickel", 58.693, 't'), ("Cu", "Copper", 63.546, 't'), ("Zn", "Zinc", 65.38, 't'),
+    ("Ga", "Gallium", 69.723, 'p'), ("Ge", "Germanium", 72.630, 'm'), ("As", "Arsenic", 74.922, 'm'),
+    ("Se", "Selenium", 78.971, 'n'), ("Br", "Bromine", 79.904, 'h'), ("Kr", "Krypton", 83.798, 'g'),
+    ("Rb", "Rubidium", 85.468, 'a'), ("Sr", "Strontium", 87.62, 'e'), ("Y", "Yttrium", 88.906, 't'),
+    ("Zr", "Zirconium", 91.224, 't'), ("Nb", "Niobium", 92.906, 't'), ("Mo", "Molybdenum", 95.95, 't'),
+    ("Tc", "Technetium", 98.0, 't'), ("Ru", "Ruthenium", 101.07, 't'), ("Rh", "Rhodium", 102.91, 't'),
+    ("Pd", "Palladium", 106.42, 't'), ("Ag", "Silver", 107.87, 't'), ("Cd", "Cadmium", 112.41, 't'),
+    ("In", "Indium", 114.82, 'p'), ("Sn", "Tin", 118.71, 'p'), ("Sb", "Antimony", 121.76, 'm'),
+    ("Te", "Tellurium", 127.60, 'm'), ("I", "Iodine", 126.90, 'h'), ("Xe", "Xenon", 131.29, 'g'),
+    ("Cs", "Caesium", 132.91, 'a'), ("Ba", "Barium", 137.33, 'e'), ("La", "Lanthanum", 138.91, 'l'),
+    ("Ce", "Cerium", 140.12, 'l'), ("Pr", "Praseodymium", 140.91, 'l'), ("Nd", "Neodymium", 144.24, 'l'),
+    ("Pm", "Promethium", 145.0, 'l'), ("Sm", "Samarium", 150.36, 'l'), ("Eu", "Europium", 151.96, 'l'),
+    ("Gd", "Gadolinium", 157.25, 'l'), ("Tb", "Terbium", 158.93, 'l'), ("Dy", "Dysprosium", 162.50, 'l'),
+    ("Ho", "Holmium", 164.93, 'l'), ("Er", "Erbium", 167.26, 'l'), ("Tm", "Thulium", 168.93, 'l'),
+    ("Yb", "Ytterbium", 173.05, 'l'), ("Lu", "Lutetium", 174.97, 'l'), ("Hf", "Hafnium", 178.49, 't'),
+    ("Ta", "Tantalum", 180.95, 't'), ("W", "Tungsten", 183.84, 't'), ("Re", "Rhenium", 186.21, 't'),
+    ("Os", "Osmium", 190.23, 't'), ("Ir", "Iridium", 192.22, 't'), ("Pt", "Platinum", 195.08, 't'),
+    ("Au", "Gold", 196.97, 't'), ("Hg", "Mercury", 200.59, 't'), ("Tl", "Thallium", 204.38, 'p'),
+    ("Pb", "Lead", 207.2, 'p'), ("Bi", "Bismuth", 208.98, 'p'), ("Po", "Polonium", 209.0, 'm'),
+    ("At", "Astatine", 210.0, 'h'), ("Rn", "Radon", 222.0, 'g'), ("Fr", "Francium", 223.0, 'a'),
+    ("Ra", "Radium", 226.0, 'e'), ("Ac", "Actinium", 227.0, 'c'), ("Th", "Thorium", 232.04, 'c'),
+    ("Pa", "Protactinium", 231.04, 'c'), ("U", "Uranium", 238.03, 'c'), ("Np", "Neptunium", 237.0, 'c'),
+    ("Pu", "Plutonium", 244.0, 'c'), ("Am", "Americium", 243.0, 'c'), ("Cm", "Curium", 247.0, 'c'),
+    ("Bk", "Berkelium", 247.0, 'c'), ("Cf", "Californium", 251.0, 'c'), ("Es", "Einsteinium", 252.0, 'c'),
+    ("Fm", "Fermium", 257.0, 'c'), ("Md", "Mendelevium", 258.0, 'c'), ("No", "Nobelium", 259.0, 'c'),
+    ("Lr", "Lawrencium", 266.0, 'c'), ("Rf", "Rutherfordium", 267.0, 't'), ("Db", "Dubnium", 268.0, 't'),
+    ("Sg", "Seaborgium", 269.0, 't'), ("Bh", "Bohrium", 270.0, 't'), ("Hs", "Hassium", 277.0, 't'),
+    ("Mt", "Meitnerium", 278.0, 'u'), ("Ds", "Darmstadtium", 281.0, 'u'), ("Rg", "Roentgenium", 282.0, 'u'),
+    ("Cn", "Copernicium", 285.0, 't'), ("Nh", "Nihonium", 286.0, 'u'), ("Fl", "Flerovium", 289.0, 'u'),
+    ("Mc", "Moscovium", 290.0, 'u'), ("Lv", "Livermorium", 293.0, 'u'), ("Ts", "Tennessine", 294.0, 'u'),
+    ("Og", "Oganesson", 294.0, 'u'),
+];
+
+pub fn category_name(c: char) -> &'static str {
+    match c {
+        'n' => "Nonmetal",
+        'g' => "Noble gas",
+        'a' => "Alkali metal",
+        'e' => "Alkaline earth metal",
+        'm' => "Metalloid",
+        'h' => "Halogen",
+        't' => "Transition metal",
+        'p' => "Post-transition metal",
+        'l' => "Lanthanide",
+        'c' => "Actinide",
+        _ => "Unknown properties",
+    }
+}
+
+pub fn period_of(z: usize) -> usize {
+    match z {
+        1..=2 => 1,
+        3..=10 => 2,
+        11..=18 => 3,
+        19..=36 => 4,
+        37..=54 => 5,
+        55..=86 => 6,
+        _ => 7,
+    }
+}
+
+/// Electron configuration by the Aufbau order (a few real elements differ slightly).
+pub fn electron_config(z: usize) -> String {
+    const ORDER: [(u8, char, usize); 19] = [
+        (1, 's', 2), (2, 's', 2), (2, 'p', 6), (3, 's', 2), (3, 'p', 6), (4, 's', 2), (3, 'd', 10),
+        (4, 'p', 6), (5, 's', 2), (4, 'd', 10), (5, 'p', 6), (6, 's', 2), (4, 'f', 14), (5, 'd', 10),
+        (6, 'p', 6), (7, 's', 2), (5, 'f', 14), (6, 'd', 10), (7, 'p', 6),
+    ];
+    let mut left = z;
+    let mut s = String::new();
+    for (n, l, cap) in ORDER {
+        if left == 0 {
+            break;
+        }
+        let k = left.min(cap);
+        left -= k;
+        if !s.is_empty() {
+            s.push(' ');
+        }
+        s.push_str(&format!("{n}{l}{}", sup(k)));
+    }
+    s
+}
+
+fn sup(n: usize) -> String {
+    n.to_string()
+        .chars()
+        .map(|c| ['⁰', '¹', '²', '³', '⁴', '⁵', '⁶', '⁷', '⁸', '⁹'][c.to_digit(10).unwrap_or(0) as usize])
+        .collect()
+}
+
+// ---------------- 3D surfaces ----------------
+
+pub const SURFACES: &[&str] = &[
+    "x² + y²", "sin x · cos y", "sin √(x²+y²)", "x · y", "x² − y²", "cos x + cos y", "e^(−x²−y²)", "|x| + |y|",
+];
+
+pub fn surface(i: usize, x: f64, y: f64) -> f64 {
+    match i {
+        0 => x * x + y * y,
+        1 => x.sin() * y.cos(),
+        2 => (x * x + y * y).sqrt().sin(),
+        3 => x * y,
+        4 => x * x - y * y,
+        5 => x.cos() + y.cos(),
+        6 => (-(x * x) - y * y).exp(),
+        _ => x.abs() + y.abs(),
+    }
+}
+
+/// Wireframe of z = f(x, y) projected to the plane: polylines in unit coordinates (-1..1).
+pub fn wireframe(i: usize, yaw: f64, pitch: f64, span: f64) -> Vec<Vec<(f32, f32)>> {
+    const N: usize = 24;
+    let mut zmax: f64 = 1e-9;
+    let mut grid = vec![[0.0f64; N + 1]; N + 1];
+    for (a, row) in grid.iter_mut().enumerate() {
+        for (b, cell) in row.iter_mut().enumerate() {
+            let x = -span + 2.0 * span * a as f64 / N as f64;
+            let y = -span + 2.0 * span * b as f64 / N as f64;
+            let z = surface(i, x, y);
+            *cell = if z.is_finite() { z } else { 0.0 };
+            zmax = zmax.max(cell.abs());
+        }
+    }
+    let (sy, cy) = yaw.sin_cos();
+    let (sp, cp) = pitch.sin_cos();
+    let proj = |a: usize, b: usize| -> (f32, f32) {
+        let x = -1.0 + 2.0 * a as f64 / N as f64;
+        let y = -1.0 + 2.0 * b as f64 / N as f64;
+        let z = grid[a][b] / zmax;
+        let (rx, ry) = (x * cy - y * sy, x * sy + y * cy);
+        let px = rx;
+        let py = z * cp - ry * sp;
+        ((px * 0.55) as f32, (py * 0.55) as f32)
+    };
+    let mut lines = vec![];
+    for a in 0..=N {
+        lines.push((0..=N).map(|b| proj(a, b)).collect());
+        lines.push((0..=N).map(|b| proj(b, a)).collect());
+    }
+    lines
+}
+
+#[cfg(test)]
+mod element_tests {
+    use super::*;
+    #[test]
+    fn table_is_complete() {
+        assert_eq!(ELEMENTS.len(), 118);
+        assert_eq!(ELEMENTS[25].0, "Fe");
+        assert_eq!(electron_config(26), "1s² 2s² 2p⁶ 3s² 3p⁶ 4s² 3d⁶");
+    }
+}

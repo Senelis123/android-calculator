@@ -6,6 +6,7 @@ pub mod ocr;
 pub mod convert;
 pub mod market;
 pub mod science;
+pub mod steps;
 pub mod draw;
 pub mod i18n;
 pub mod app;
