@@ -537,8 +537,8 @@ impl App {
                 self.show_frac = !self.show_frac;
                 return;
             }
-            "2nd" => {
-                self.sci_page = (self.sci_page + 1) % 2;
+            "2nd" | "3rd" | "4th" | "5th" | "6th" | "1st" => {
+                self.sci_page = (self.sci_page + 1) % crate::science::SCI_PAGES as u8;
                 return;
             }
             _ => {}
@@ -765,7 +765,13 @@ impl App {
                 self.push_value_tok(Tok::Func(f));
             }
             "=" => self.equals(),
-            _ => {}
+            k => {
+                if let Some(f) = crate::science::extra_func(k) {
+                    self.push_value_tok(Tok::Func(f));
+                } else if let Some(raw) = crate::science::constant_value(k) {
+                    self.push_value_tok(Tok::Num(raw.to_string()));
+                }
+            }
         }
     }
 
@@ -2214,7 +2220,9 @@ impl App {
             ",", "±", "%",
         ];
         let deg = if self.s.degrees { "DEG" } else { "RAD" };
-        let scik: Vec<&str> = if self.sci_page == 0 {
+        let scik: Vec<&str> = if self.sci_page >= 2 {
+            crate::science::page_keys(self.sci_page as usize).to_vec()
+        } else if self.sci_page == 0 {
             vec![
                 "2nd", "(", ")", "◀", "▶", "x²", "xʸ", "√", "π", "e", "1/x", "sin", "cos", "tan",
                 "n!", "ln", "log", "x", "Ans", deg,
@@ -2291,7 +2299,8 @@ impl App {
             };
             if sci {
                 let sci_h = gh * 5.0 / 10.0 * 0.8;
-                place(out, &scik, Rect::new(kx, gt, kw, sci_h), 4, 5, 16.0 * d);
+                let spx = if self.sci_page >= 2 { 13.5 * d } else { 16.0 * d };
+                place(out, &scik, Rect::new(kx, gt, kw, sci_h), 4, 5, spx);
                 place(
                     out,
                     &basic,
@@ -2348,8 +2357,8 @@ impl App {
         if self.s.mem[self.s.mem_slot] != 0.0 {
             ind.push(format!("M{}", self.s.mem_slot + 1));
         }
-        if self.sci_page == 1 {
-            ind.push("2nd".into());
+        if self.sci_page > 0 {
+            ind.push(format!("{}/{}", self.sci_page + 1, crate::science::SCI_PAGES));
         }
         if self.s.sci {
             ind.push(if self.s.degrees { "DEG" } else { "RAD" }.to_string());

@@ -22,7 +22,14 @@ pub const TOOLS: &[ToolDef] = &[
     ToolDef { name: "Systems of equations", fields: &["a1", "b1", "c1", "d1", "a2", "b2", "c2", "d2", "a3", "b3", "c3", "d3"], modes: &["2 unknowns", "3 unknowns"], list: false },
     ToolDef { name: "Matrices", fields: &["a11", "a12", "a13", "a21", "a22", "a23", "a31", "a32", "a33"], modes: &["2×2", "3×3"], list: false },
     ToolDef { name: "Random and dice", fields: &["From", "To"], modes: &["Random number", "Dice", "Coin"], list: false },
+    ToolDef { name: "Geometry", fields: &["A", "B", "C"], modes: crate::science::GEO_MODES, list: false },
+    ToolDef { name: "Physics formulas", fields: &["A", "B", "C"], modes: crate::science::PHYS_MODES, list: false },
+    ToolDef { name: "Chemistry formulas", fields: &["A", "B", "C"], modes: crate::science::CHEM_MODES, list: false },
 ];
+
+pub const T_GEO: usize = 16;
+pub const T_PHYS: usize = 17;
+pub const T_CHEM: usize = 18;
 
 pub const T_SYSTEMS: usize = 13;
 pub const T_MATRIX: usize = 14;
@@ -37,6 +44,9 @@ pub fn visible_fields(tool: usize, mode: usize) -> Vec<usize> {
         (T_MATRIX, 0) => vec![0, 1, 3, 4],
         (T_DATES, 1) => vec![0, 1, 2],
         (T_DATES, 2) => vec![0, 1, 2, 3],
+        (T_GEO, m) => (0..crate::science::geo_labels(m).len()).collect(),
+        (T_PHYS, m) => (0..crate::science::phys_labels(m).len()).collect(),
+        (T_CHEM, m) => (0..crate::science::chem_labels(m).len()).collect(),
         (t, _) => (0..TOOLS[t].fields.len()).collect(),
     }
 }
@@ -46,6 +56,9 @@ pub fn field_label(tool: usize, mode: usize, f: usize) -> &'static str {
         (T_SYSTEMS, 0, 3) => "c1",
         (T_SYSTEMS, 0, 7) => "c2",
         (T_DATES, 2, 3) => "Days",
+        (T_GEO, m, f) => crate::science::geo_labels(m).get(f).copied().unwrap_or(""),
+        (T_PHYS, m, f) => crate::science::phys_labels(m).get(f).copied().unwrap_or(""),
+        (T_CHEM, m, f) => crate::science::chem_labels(m).get(f).copied().unwrap_or(""),
         (T_SYSTEMS, 1, _) | (T_SYSTEMS, 0, _) | (T_MATRIX, _, _) => TOOLS[tool].fields[f],
         _ => TOOLS[tool].fields[f],
     }
@@ -119,6 +132,9 @@ pub fn compute(tool: usize, mode: usize, v: &[f64], list: &[f64], seed: u64) -> 
     let n = display_num;
     let mut o = vec![];
     match tool {
+        16 => return crate::science::geometry(mode, v),
+        17 => return crate::science::physics(mode, v),
+        18 => return crate::science::chemistry(mode, v),
         0 => if let (Some(a), Some(b)) = (g(0), g(1)) {
             match mode {
                 0 => { o.push(row("You pay", n(a * (1.0 - b / 100.0)))); o.push(row("You save", n(a * b / 100.0))); }

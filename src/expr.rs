@@ -308,6 +308,7 @@ fn func(f: &str, x: f64, y: Option<f64>, deg: bool) -> Result<f64, CalcError> {
         "cosh" => x.cosh(),
         "tanh" => x.tanh(),
         "abs" => x.abs(),
+        f if crate::science::is_extra(f) => crate::science::extra_eval(f, x, deg)?,
         "ln" => {
             dom(x > 0.0)?;
             x.ln()
