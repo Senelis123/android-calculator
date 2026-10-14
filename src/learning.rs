@@ -102,11 +102,12 @@ pub fn question(seed: u64, mode: usize) -> Question {
             explanation: format!("{} = {}, atomic number {}", e.0, e.1, z),
         };
     }
+    let solution=(seed/41%15+1) as i64;
     let (text, answer, explanation) = if mode == 1 {
         (
-            format!("{m}x + {n} = {}. Find x.", m * 4 + n),
-            4,
-            format!("Subtract {n}, then divide by {m}: x = 4"),
+            format!("{m}x + {n} = {}. Find x.", m * solution + n),
+            solution,
+            format!("Subtract {n}, then divide by {m}: x = {solution}"),
         )
     } else {
         match seed % 3 {
