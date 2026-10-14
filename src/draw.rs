@@ -3,6 +3,7 @@
 use fontdue::{Font, FontSettings, Metrics};
 use std::cell::RefCell;
 use std::collections::HashMap;
+use std::sync::{Arc, OnceLock};
 
 static REGULAR: &[u8] = include_bytes!("../fonts/DejaVuSans.ttf");
 static BOLD: &[u8] = include_bytes!("../fonts/DejaVuSans-Bold.ttf");
@@ -41,7 +42,7 @@ impl Canvas<'_> {
         }
     }
     pub fn round_rect(&mut self, r: Rect, radius: f32, c: Rgb, clip: Rect) {
-        let rr = r.intersect(&clip);
+        let rr = r.intersect(&clip).intersect(&Rect::new(0.0, 0.0, self.w as f32, self.h as f32));
         if rr.w <= 0.0 || rr.h <= 0.0 { return; }
         let radius = radius.min(r.w / 2.0).min(r.h / 2.0);
         let (x0, y0, x1, y1) = (rr.x.floor() as i32, rr.y.floor() as i32, rr.right().ceil() as i32, rr.bottom().ceil() as i32);
@@ -49,7 +50,22 @@ impl Canvas<'_> {
             let cy = y as f32 + 0.5;
             let cov_y = ((cy - r.y + 0.5).min(r.bottom() - cy + 0.5)).clamp(0.0, 1.0);
             let qy = (r.y + radius - cy).max(cy - (r.bottom() - radius));
-            for x in x0..x1 {
+            // Opaque centers need no per-pixel coverage math or blending.
+            // Keep the original coverage calculation for fractional edges and
+            // rounded corners so text/button appearance is unchanged.
+            let solid_start = (r.x.ceil() as i32)
+                .max((r.x + radius - 0.5).ceil() as i32).clamp(x0, x1);
+            let solid_end = (r.right().floor() as i32)
+                .min((r.right() - radius + 0.5).floor() as i32).clamp(solid_start, x1);
+            if cov_y == 1.0 {
+                let start = (y as usize * self.stride + solid_start as usize) * 4;
+                let end = (y as usize * self.stride + solid_end as usize) * 4;
+                for p in self.px[start..end].chunks_exact_mut(4) {
+                    p.copy_from_slice(&[c[0], c[1], c[2], 255]);
+                }
+            }
+            let ranges = if cov_y == 1.0 { [x0..solid_start, solid_end..x1] } else { [x0..x1, x1..x1] };
+            for x in ranges.into_iter().flatten() {
                 let cx = x as f32 + 0.5;
                 let cov_x = ((cx - r.x + 0.5).min(r.right() - cx + 0.5)).clamp(0.0, 1.0);
                 let mut cov = cov_x * cov_y;
@@ -88,15 +104,23 @@ impl Canvas<'_> {
     }
 }
 
-pub struct Fonts { regular: Font, bold: Font, cache: RefCell<HashMap<(char, u32, bool), (Metrics, Vec<u8>)>> }
+pub struct Fonts { regular: Arc<Font>, bold: Arc<Font>, cache: RefCell<HashMap<(char, u32, bool), (Metrics, Vec<u8>)>> }
 
 impl Default for Fonts { fn default() -> Self { Self::new() } }
 
 impl Fonts {
     pub fn new() -> Self {
+        // Parsing the full TTF tables is expensive. Layout also uses Fonts to
+        // measure cursor hit targets, so share immutable parsed fonts rather
+        // than reparsing them on every touch-down/up and expression rebuild.
+        static PARSED: OnceLock<(Arc<Font>, Arc<Font>)> = OnceLock::new();
+        let (regular, bold) = PARSED.get_or_init(|| (
+            Arc::new(Font::from_bytes(REGULAR, FontSettings::default()).expect("font")),
+            Arc::new(Font::from_bytes(BOLD, FontSettings::default()).expect("font")),
+        ));
         Fonts {
-            regular: Font::from_bytes(REGULAR, FontSettings::default()).expect("font"),
-            bold: Font::from_bytes(BOLD, FontSettings::default()).expect("font"),
+            regular: Arc::clone(regular),
+            bold: Arc::clone(bold),
             cache: RefCell::new(HashMap::new()),
         }
     }
@@ -151,4 +175,43 @@ impl Fonts {
         }
         lines
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn font_parsing_is_shared_across_layout_and_renderer() {
+        let a = Fonts::new();
+        let b = Fonts::new();
+        assert!(Arc::ptr_eq(&a.regular, &b.regular));
+        assert!(Arc::ptr_eq(&a.bold, &b.bold));
+        assert_eq!(a.width("123+456", 44.0, false), b.width("123+456", 44.0, false));
+    }
+    #[test]
+    fn optimized_fill_matches_original_coverage() {
+        for k in 0..80 {
+            let r = Rect::new(-2.0 + (k % 7) as f32 * 0.3, -1.0 + (k % 5) as f32 * 0.4, 15.1 + (k % 9) as f32, 13.2);
+            let clip = Rect::new(1.2, 0.7, 27.0, 23.0);
+            let radius = ((k % 12) as f32).min(r.w / 2.0).min(r.h / 2.0);
+            let mut actual = vec![87u8; 32 * 32 * 4];
+            let mut expected = actual.clone();
+            Canvas { px: &mut actual, w: 32, h: 32, stride: 32 }.round_rect(r, radius, [31, 107, 229], clip);
+            let mut cv = Canvas { px: &mut expected, w: 32, h: 32, stride: 32 };
+            let rr = r.intersect(&clip);
+            for y in rr.y.floor() as i32..rr.bottom().ceil() as i32 {
+                for x in rr.x.floor() as i32..rr.right().ceil() as i32 {
+                    let (cx, cy) = (x as f32 + 0.5, y as f32 + 0.5);
+                    let mut cov = ((cx-r.x+0.5).min(r.right()-cx+0.5)).clamp(0.0,1.0)
+                        * ((cy-r.y+0.5).min(r.bottom()-cy+0.5)).clamp(0.0,1.0);
+                    let qx = (r.x+radius-cx).max(cx-(r.right()-radius));
+                    let qy = (r.y+radius-cy).max(cy-(r.bottom()-radius));
+                    if qx > 0.0 && qy > 0.0 { cov *= (radius-(qx*qx+qy*qy).sqrt()+0.5).clamp(0.0,1.0); }
+                    cv.blend(x,y,[31,107,229],cov);
+                }
+            }
+            assert_eq!(actual, expected, "case {k}");
+        }
+    }
+
 }
