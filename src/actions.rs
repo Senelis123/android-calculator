@@ -197,6 +197,9 @@ impl App {
             Action::Set("formula_new") => fx.push(Effect::InputDialog("Name on first line, formula on second line".into(),"Rectangle area\nwidth*height".into(),3)),
             Action::Set("stats_input") => fx.push(Effect::InputDialog("Data: numbers separated by spaces (decimal point)".into(),self.stats_data.iter().map(|v|v.to_string()).collect::<Vec<_>>().join(" "),5)),
             Action::Set("stats_pie") => self.stats_pie = !self.stats_pie,
+            Action::ShareHistoryImage(i) => {
+                if let Some(h)=self.s.history.get(*i) {fx.push(Effect::ShareImage(h.expr.clone(),h.result.clone()));}
+            }
             Action::Set("share_image") => {
                 let (line,result)=self.result.clone().unwrap_or_else(||(display_tokens(&self.tokens),self.current_value().map(display_num).unwrap_or_default()));
                 fx.push(Effect::ShareImage(line,result));
