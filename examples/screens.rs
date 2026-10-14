@@ -4,10 +4,12 @@ use calculator::app::*;
 fn main() {
     let a: Vec<String> = std::env::args().collect();
     let (w, h) = { let p: Vec<u32> = a[2].split('x').map(|v| v.parse().unwrap()).collect(); (p[0], p[1]) };
-    let d = 2.625f32;
+    let d = std::env::var("D").ok().and_then(|v|v.parse().ok()).unwrap_or(1.75f32);
     let mut app = App::default();
     for s in &a[3..] {
         if let Some(k) = s.strip_prefix("key:") { app.handle(&Action::Key(k.into())); }
+        else if s == "pie" { app.stats_pie=true; }
+        else if s == "edit" { app.handle(&Action::EditCursor(2)); }
         else if s == "sci" { app.handle(&Action::ToggleSci); }
         else if s == "dark" { app.s.theme = 2; }
         else if s == "longpress" { app.handle(&Action::DisplayLongPress); }
@@ -19,7 +21,7 @@ fn main() {
             app.photo = App::photo_result(img); app.screen = Screen::Photo;
         }
         else if let Some(n) = s.strip_prefix("nav:") {
-            let sc = match n { "history" => Screen::History, "vat" => Screen::Vat, "conv" => Screen::Converter, "settings" => Screen::Settings, "photo" => Screen::Photo, "pick" => Screen::PickUnit { from: true }, _ => Screen::Calc };
+            let sc = match n { "quiz" => Screen::Quiz, "formulas" => Screen::Formulas, "stats" => Screen::StatsCharts, "market" => Screen::MarketDetail, "new" => Screen::WhatsNew, "history" => Screen::History, "vat" => Screen::Vat, "conv" => Screen::Converter, "settings" => Screen::Settings, "photo" => Screen::Photo, "pick" => Screen::PickUnit { from: true }, _ => Screen::Calc };
             app.handle(&Action::Nav(sc));
         }
         else if let Some(n) = s.strip_prefix("tool:") { app.handle(&Action::OpenTool(n.parse().unwrap())); }
@@ -35,6 +37,13 @@ fn main() {
         else if s == "graph" { app.handle(&Action::Nav(Screen::Graph)); }
         else if let Some(l) = s.strip_prefix("lang:") { app.s.lang = l.parse().unwrap(); app.apply_lang(); }
         else if let Some(c) = s.strip_prefix("cat:") { app.handle(&Action::ConvCat(c.parse().unwrap())); }
+    }
+    if app.screen == Screen::Quiz { app.handle(&Action::QuizMode(0)); }
+    if app.screen == Screen::Formulas { app.dialog_result(3,"Rectangle area\nwidth*height");app.dialog_result(3,"Kinetic energy\nmass*speed^2/2"); }
+    if app.screen == Screen::StatsCharts { app.stats_data=vec![4.,8.,6.,10.]; }
+    if app.screen == Screen::MarketDetail {
+        app.market_sel=calculator::market::parse_crypto(r#"{"bitcoin":{"eur":62123.45,"eur_24h_change":2.12,"eur_market_cap":1200000000000.0,"eur_24h_vol":30000000000.0}}"#).first().cloned();
+        app.market_hist=(0..50).map(|i|(1791980000.+i as f64*900.,62000.+(i as f64*0.25).sin()*200.)).collect(); app.market_point=25;
     }
     if app.s.rates.is_none() { app.s.rates = calculator::convert::parse_ecb("<Cube time='2026-09-24'><Cube currency='USD' rate='1.1367'/><Cube currency='GBP' rate='0.85986'/></Cube>"); }
     let fonts = calculator::draw::Fonts::new();
