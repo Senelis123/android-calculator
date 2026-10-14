@@ -1110,7 +1110,7 @@ fn android_main(a: AndroidApp) {
                                         .unwrap_or(Action::None);
                                     let ok = match app.screen {
                                         Screen::Calc => {
-                                            matches!(on, Action::Copy | Action::ClosePopup)
+                                            matches!(on, Action::Copy | Action::ClosePopup | Action::EditCursor(_))
                                         }
                                         Screen::History => matches!(on, Action::LoadHistory(_)),
                                         _ => false,
@@ -1332,4 +1332,4 @@ pub extern "system" fn Java_com_example_androidcalculator_rust_Addon_nativeEval<
     env.new_string(out)
         .map(|o| o.into_raw())
         .unwrap_or(std::ptr::null_mut())
-                }
+}
