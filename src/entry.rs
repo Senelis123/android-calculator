@@ -35,6 +35,7 @@ impl App {
 
     pub fn press(&mut self, key: &str) {
         if let Some(mut text) = self.edit_text.take() {
+            let before=self.tokens.clone();
             let mut chars: Vec<char> = text.chars().collect();
             self.edit_cursor = self.edit_cursor.min(chars.len());
             match key {
@@ -55,13 +56,15 @@ impl App {
                 "↶" | "↷" => { self.cursor = None; self.press(key); return; },
                 _ => {
                     let k = match key { "×" => "*", "÷" => "/", "−" => "-", "√" => "sqrt(", "±"=>"-", "xʸ"=>"^", "n!"=>"!", "x²"=>"²", "x³"=>"³", _ => key };
-                    let k = crate::science::extra_func(k).unwrap_or(k);
-                    let k = if expr::FUNCS.contains(&k) || matches!(k,"exp"|"pow10"|"pow2"|"log2"|"cbrt"|"trunc"|"sec"|"csc"|"cot"|"asinh"|"acosh"|"atanh"|"floor"|"ceil"|"round"|"sign"|"gamma") { format!("{k}(") } else { k.to_string() };
+                    let k = crate::science::constant_value(k).unwrap_or(k);
+                    let extra=crate::science::extra_func(k).is_some();
+                    let k = if extra || expr::FUNCS.contains(&k) || matches!(k,"exp"|"pow10"|"pow2"|"log2"|"cbrt"|"trunc"|"sec"|"csc"|"cot"|"asinh"|"acosh"|"atanh"|"floor"|"ceil"|"round"|"sign"|"gamma") { format!("{k}(") } else { k.to_string() };
                     for c in k.chars() { chars.insert(self.edit_cursor, c); self.edit_cursor += 1; }
                 }
             }
             text = chars.into_iter().collect();
             self.tokens = expr::tokenize_edit(&text).unwrap_or_else(|| self.tokens.clone());
+            if self.tokens!=before {self.undo.push(before);self.redo.clear();}
             self.edit_text = Some(text); self.result = None; self.just_evaluated = false; return;
         }
         match key {
