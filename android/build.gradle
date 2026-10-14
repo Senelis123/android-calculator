@@ -41,5 +41,6 @@ android {
 }
 
 dependencies {
+    implementation 'androidx.core:core:1.13.1'
     implementation 'com.google.mlkit:genai-prompt:1.0.0-beta4'
 }
