@@ -22,6 +22,7 @@ pub struct Quote {
     pub price: f64,
     pub change_pct: Option<f64>,
     pub currency: String,
+    pub info: Vec<(String, String)>,
 }
 
 pub const CRYPTOS: &[(&str, &str, &str)] = &[
@@ -138,7 +139,7 @@ pub fn crypto_url() -> String {
         .collect::<Vec<_>>()
         .join(",");
     format!(
-        "https://api.coingecko.com/api/v3/simple/price?ids={ids}&vs_currencies=usd,eur&include_24hr_change=true"
+        "https://api.coingecko.com/api/v3/simple/price?ids={ids}&vs_currencies=usd,eur&include_24hr_change=true&include_market_cap=true&include_24hr_vol=true&include_last_updated_at=true"
     )
 }
 
@@ -187,6 +188,26 @@ pub fn parse_crypto(json: &str) -> Vec<Quote> {
                 price,
                 change_pct: change,
                 currency: if eur.is_some() { "EUR" } else { "USD" }.into(),
+                info: {
+                    let pre = if eur.is_some() { "eur" } else { "usd" };
+                    let mut a = vec![];
+                    for (label, key) in [
+                        ("Market cap", format!("{pre}_market_cap")),
+                        ("24h volume", format!("{pre}_24h_vol")),
+                    ] {
+                        if let Some(v) = q
+                            .get(&key)
+                            .and_then(Value::as_f64)
+                            .filter(|v| v.is_finite())
+                        {
+                            a.push((label.into(), crate::expr::display_num(v)));
+                        }
+                    }
+                    if let Some(v) = q.get("last_updated_at").and_then(Value::as_f64) {
+                        a.push(("Updated (UTC)".into(), crate::app::fmt_ts(v, true)));
+                    }
+                    a
+                },
             });
         }
     }
@@ -218,6 +239,7 @@ struct YahooMeta {
 }
 
 pub fn parse_stock(json: &str, fallback_symbol: &str) -> Option<Quote> {
+    let raw: Value = serde_json::from_str(json).ok()?;
     let root: YahooChart = serde_json::from_str(json).ok()?;
     let meta = root.chart.result?.into_iter().next()?.meta;
     let price = meta
@@ -235,6 +257,36 @@ pub fn parse_stock(json: &str, fallback_symbol: &str) -> Option<Quote> {
         price,
         change_pct,
         currency: meta.currency.unwrap_or_else(|| "USD".into()),
+        info: {
+            let mut a = vec![];
+            if let Some(m) = raw.pointer("/chart/result/0/meta") {
+                for (label, key) in [
+                    ("Day high", "regularMarketDayHigh"),
+                    ("Day low", "regularMarketDayLow"),
+                    ("Volume", "regularMarketVolume"),
+                    ("Previous close", "chartPreviousClose"),
+                    ("52 week high", "fiftyTwoWeekHigh"),
+                    ("52 week low", "fiftyTwoWeekLow"),
+                    ("Market cap", "marketCap"),
+                ] {
+                    if let Some(v) = m.get(key).and_then(Value::as_f64).filter(|v| v.is_finite()) {
+                        a.push((label.into(), crate::expr::display_num(v)));
+                    }
+                }
+                for (label, key) in [
+                    ("Exchange", "exchangeName"),
+                    ("Instrument", "instrumentType"),
+                ] {
+                    if let Some(v) = m.get(key).and_then(Value::as_str) {
+                        a.push((label.into(), v.into()));
+                    }
+                }
+                if let Some(v) = m.get("regularMarketTime").and_then(Value::as_f64) {
+                    a.push(("Updated (UTC)".into(), crate::app::fmt_ts(v, true)));
+                }
+            }
+            a
+        },
     })
 }
 
