@@ -224,7 +224,7 @@ impl App {
                             Action::StartText(1, i)
                         },
                     });
-                    out.push(W::Button {r:Rect::new(r.x+48.0*d,r.y+54.0*d,42.0*d,28.0*d),label:"↗".into(),px:17.0*d,kind:Kind::Flat,action:Action::ShareHistoryImage(i)});
+                    out.push(W::Button {r:Rect::new(r.x+4.0*d,r.y+50.0*d,42.0*d,28.0*d),label:"↗".into(),px:17.0*d,kind:Kind::Flat,action:Action::ShareHistoryImage(i)});
                     y += rh + 4.0 * d;
                 }
                 if !self.s.history.is_empty() {
@@ -1282,4 +1282,4 @@ impl App {
         }
         y - area.y + 24.0 * d
     }
-                }
+}
