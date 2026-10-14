@@ -1205,7 +1205,7 @@ fn android_main(a: AndroidApp) {
             if !long_fired
                 && app.screen == Screen::Calc
                 && t.elapsed() > Duration::from_millis(450)
-                && frame.action(i) == Some(Action::ClosePopup)
+                && matches!(frame.action(i),Some(Action::ClosePopup | Action::Copy | Action::EditCursor(_)))
             {
                 long_fired = true;
                 pressed = None;
