@@ -19,7 +19,7 @@ pub enum Tok {
 }
 
 pub const FUNCS: &[&str] = &[
-    "sin", "cos", "tan", "pow10", "pow2", "recip", "trunc", "sign", "logb", "root", "nCr", "nPr", "asinh", "acosh", "atanh", "floor", "ceil", "gamma", "cbrt", "log2", "exp", "sec", "csc", "cot", "asin", "acos", "atan", "sinh", "cosh", "tanh", "ln", "log", "√", "root",
+    "sin", "cos", "tan", "pow10", "pow2", "recip", "trunc", "sign", "logb", "root", "nCr", "nPr", "asinh", "acosh", "atanh", "floor", "ceil",  "sec", "csc", "cot", "asin", "acos", "atan", "sinh", "cosh", "tanh", "ln", "log", "√", "root",
     "logb", "nCr", "nPr", "abs",
 ];
 
@@ -1246,6 +1246,11 @@ fn tokenize_inner(s: &str, editing:bool) -> Option<Vec<Tok>> {
             {
                 i += 1;
             }
+            if editing && cs.get(i)==Some(&'e') {
+                let mut j=i+1;if matches!(cs.get(j),Some('+'|'-')){j+=1;}
+                let digits=j;while cs.get(j).is_some_and(|c|c.is_ascii_digit()){j+=1;}
+                if j>digits{i=j;}
+            }
             let raw: String = cs[st..i].iter().collect::<String>().replace(',', ".");
             if raw.matches('.').count() > 1 || raw == "." {
                 return None;
@@ -1254,9 +1259,24 @@ fn tokenize_inner(s: &str, editing:bool) -> Option<Vec<Tok>> {
             continue;
         }
         let rest: String = cs[i..].iter().collect();
+        if editing {
+            let mut found=false;
+            for page in 0..crate::science::SCI_PAGES {
+                for key in crate::science::page_keys(page).iter() {
+                    if let Some(f)=crate::science::extra_func(key) {
+                        if rest.starts_with(f) && rest[f.len()..].starts_with('(') {
+                            v.push(Tok::Func(f));i+=f.chars().count()+1;found=true;break;
+                        }
+                    }
+                }
+                if found {break;}
+            }
+            if found {continue;}
+        }
+
         let mut matched = false;
         for f in [
-            "pow10", "pow2", "recip", "trunc", "sign", "logb", "root", "nCr", "nPr", "asinh", "acosh", "atanh", "floor", "ceil", "gamma", "cbrt", "log2", "exp", "sec", "csc", "cot", "asin", "acos", "atan", "sinh", "cosh", "tanh", "sin", "cos", "tan", "ln", "log", "√",
+            "pow10", "pow2", "recip", "trunc", "sign", "logb", "root", "nCr", "nPr", "asinh", "acosh", "atanh", "floor", "ceil",  "sec", "csc", "cot", "asin", "acos", "atan", "sinh", "cosh", "tanh", "sin", "cos", "tan", "ln", "log", "√",
             "abs",
         ] {
             if rest.starts_with(f) {
@@ -1282,6 +1302,7 @@ fn tokenize_inner(s: &str, editing:bool) -> Option<Vec<Tok>> {
             i += 2;
             continue;
         }
+        if editing && rest.starts_with("⁻¹") {v.push(Tok::Post("⁻¹"));i+=2;continue;}
         if editing && rest.starts_with("mod") {v.push(Tok::Op('m'));i+=3;continue;}
         v.push(match c {
             '+' | '−' | '×' | '÷' | '^' => Tok::Op(c),
@@ -1549,7 +1570,7 @@ mod tests {
             let rest: String = cs[i..].iter().collect();
             let mut matched = false;
             for f in [
-                "pow10", "pow2", "recip", "trunc", "sign", "logb", "root", "nCr", "nPr", "asinh", "acosh", "atanh", "floor", "ceil", "gamma", "cbrt", "log2", "exp", "sec", "csc", "cot", "asin", "acos", "atan", "sinh", "cosh", "tanh", "sin", "cos", "tan", "ln", "logb",
+                "pow10", "pow2", "recip", "trunc", "sign", "logb", "root", "nCr", "nPr", "asinh", "acosh", "atanh", "floor", "ceil",  "sec", "csc", "cot", "asin", "acos", "atan", "sinh", "cosh", "tanh", "sin", "cos", "tan", "ln", "logb",
                 "log", "√", "root", "nCr", "nPr",
             ] {
                 if rest.starts_with(f) {
@@ -1766,4 +1787,11 @@ mod tests {
         assert_eq!(e.solve(&toks("x³−6x²+11x−6=0")), Ok(vec![1.0, 2.0, 3.0]));
         assert_eq!(e.solve(&toks("x³=27")), Ok(vec![3.0]));
     }
-                }
+}
+
+#[cfg(test)]mod edit_tests{
+use super::*;
+#[test]fn editable_roundtrip(){
+for t in [vec![Tok::X,Tok::Equals,Tok::Num("2".into())],vec![Tok::Func("asin"),Tok::Num("0.5".into()),Tok::RParen],vec![Tok::Num("1.5e-12".into())],vec![Tok::Func("log₂"),Tok::Num("8".into()),Tok::RParen],vec![Tok::Num("2".into()),Tok::Op('m'),Tok::Num("3".into())]]{assert_eq!(tokenize_edit(&editable_text(&t)),Some(t));}
+}
+        }
