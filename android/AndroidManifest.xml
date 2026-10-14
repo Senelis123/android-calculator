@@ -56,6 +56,9 @@
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_info" />
         </receiver>
+        <provider android:name="androidx.core.content.FileProvider" android:authorities="${applicationId}.files" android:exported="false" android:grantUriPermissions="true">
+            <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/share_paths" />
+        </provider>
         <!-- 2.3.0.1: no library start-up code before the app opens (ML Kit starts only when Gemini Nano is used) -->
         <provider android:name="com.google.mlkit.common.internal.MlKitInitProvider" android:authorities="${applicationId}.mlkitinitprovider" tools:node="remove" />
         <provider android:name="androidx.startup.InitializationProvider" android:authorities="${applicationId}.androidx-startup" tools:node="merge">
