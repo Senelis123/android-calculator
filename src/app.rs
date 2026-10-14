@@ -223,6 +223,7 @@ pub enum Action {
     QuizAnswer(usize),
     FormulaOpen(usize),
     FormulaDelete(usize),
+    ShareHistoryImage(usize),
     MarketPoint(usize),
     EditCursor(usize),
     ElementOpen(usize),
