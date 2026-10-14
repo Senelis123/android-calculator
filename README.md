@@ -1,6 +1,6 @@
 # Android Calculator (Rust)
 
-Rust rewrite of the original Java calculator (version 2.5.0.1). The app itself is Rust: it runs as an
+Rust rewrite of the original Java calculator (version 2.6.0.0). The app itself is Rust: it runs as an
 Android `NativeActivity` (`android-activity` crate) and draws the UI itself. A small optional Java add-on
 (`android/src/main/java`) adds what needs Android classes: home screen widget, quick settings tile,
 floating calculator, voice input, text-to-speech/TalkBack announcements, background update check and
@@ -72,3 +72,19 @@ The Markets screen shows informational cryptocurrency and stock quotes on demand
 Configure these repository Actions secrets before publishing:
 RELEASE_KEYSTORE_BASE64, RELEASE_KEYSTORE_PASSWORD, RELEASE_KEY_ALIAS.
 Do not commit a production or release keystore to the repository.
+
+## 2.6.0.0
+
+- Back navigation remembers the origin screen, including Settings -> What's New -> Settings.
+- Tap an expression to position a character cursor, including inside numbers. Insert/delete there. Long press still opens copy/paste.
+- Drag stock/crypto charts to see the nearest recorded price and UTC time. Arrow buttons inspect every stored sample. This is sampled history, not tick-by-tick trading data.
+- Market details show available cap, volume, day high/low, previous close, 52-week range, exchange and update time. CoinGecko simple-price supplies cap/volume but not daily highs/lows. Missing fields are not invented.
+- Offline Quiz: arithmetic, equations and periodic-table questions, 10-question rounds, score and saved best scores.
+- My formulas: save named formulas with variables, enter values and reuse them. Up to 50 formulas. Explicit multiplication, decimal point and DEG trig.
+- Statistics charts: up to 60 values, bar/pie views, count, sum and mean. Negative values require bars.
+- Share the current calculation or a history entry as a PNG through Android's share sheet. Recipient selection remains with the user.
+- Existing Rust application state/rendering split into smaller modules for maintainability. No framework change.
+
+Handwriting input is NOT included: a clean finger-stroke prototype was misread by the bundled printed-text OCR. A trained offline handwriting recognizer and real-device stroke tests are needed before shipping it.
+
+Checks: Rust unit tests, Clippy, Android-target Rust checking and 720x1600 screen renders. Android dialog/keyboard and PNG share behavior still need device testing on the Poco C65. The new labels are English.
