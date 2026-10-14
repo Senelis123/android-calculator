@@ -174,7 +174,7 @@ impl App {
                     });
                     let tag = if hi.photo { "◉ " } else { "" };
                     out.push(W::Text {
-                        r: Rect::new(r.x + 96.0 * d, r.y + 4.0 * d, r.w - 108.0 * d, 26.0 * d),
+                        r: Rect::new(r.x + 144.0 * d, r.y + 4.0 * d, r.w - 156.0 * d, 26.0 * d),
                         text: format!("{tag}{}", hi.expr),
                         px: 14.0 * d,
                         bold: false,
@@ -183,7 +183,7 @@ impl App {
                         wrap: false,
                     });
                     out.push(W::Text {
-                        r: Rect::new(r.x + 96.0 * d, r.y + 28.0 * d, r.w - 108.0 * d, 32.0 * d),
+                        r: Rect::new(r.x + 144.0 * d, r.y + 28.0 * d, r.w - 156.0 * d, 32.0 * d),
                         text: hi.result.clone(),
                         px: 20.0 * d,
                         bold: true,
@@ -224,7 +224,7 @@ impl App {
                             Action::StartText(1, i)
                         },
                     });
-                    out.push(W::Button {r:Rect::new(r.x+4.0*d,r.y+50.0*d,42.0*d,28.0*d),label:"↗".into(),px:17.0*d,kind:Kind::Flat,action:Action::ShareHistoryImage(i)});
+                    out.push(W::Button {r:Rect::new(r.x+96.0*d,r.y+8.0*d,42.0*d,44.0*d),label:"↗".into(),px:17.0*d,kind:Kind::Flat,action:Action::ShareHistoryImage(i)});
                     y += rh + 4.0 * d;
                 }
                 if !self.s.history.is_empty() {
