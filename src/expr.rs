@@ -19,7 +19,7 @@ pub enum Tok {
 }
 
 pub const FUNCS: &[&str] = &[
-    "sin", "cos", "tan", "asin", "acos", "atan", "sinh", "cosh", "tanh", "ln", "log", "√", "root",
+    "sin", "cos", "tan", "pow10", "pow2", "recip", "trunc", "sign", "logb", "root", "nCr", "nPr", "asinh", "acosh", "atanh", "floor", "ceil", "gamma", "cbrt", "log2", "exp", "sec", "csc", "cot", "asin", "acos", "atan", "sinh", "cosh", "tanh", "ln", "log", "√", "root",
     "logb", "nCr", "nPr", "abs",
 ];
 
@@ -1206,7 +1206,16 @@ pub fn words(v: f64, lang: usize) -> Option<String> {
 
 /// Turns plain text like "2*(3+4)^2", "sqrt(16)" or "15% of 200" style expressions into tokens.
 /// Used for results from voice input and Gemini Nano. None when something is not understood.
-pub fn tokenize(s: &str) -> Option<Vec<Tok>> {
+pub fn tokenize(s: &str) -> Option<Vec<Tok>> { tokenize_inner(s,false) }
+pub fn editable_text(tokens:&[Tok])->String {
+    tokens.iter().map(|t|match t {
+        Tok::Num(n)=>n.clone(),Tok::Op('m')=>" mod ".into(),Tok::Op(c)=>format!(" {c} "),
+        Tok::Func(f)=>format!("{f}("),Tok::LParen=>"(".into(),Tok::RParen=>")".into(),
+        Tok::Post(p)=>p.to_string(),Tok::Sep=>";".into(),Tok::Pi=>"π".into(),Tok::E=>"e".into(),Tok::X=>"x".into(),Tok::I=>"i".into(),Tok::Ans=>"Ans".into(),Tok::Equals=>"=".into(),Tok::Cmp(c)=>c.to_string(),
+    }).collect()
+}
+pub fn tokenize_edit(s: &str) -> Option<Vec<Tok>> { tokenize_inner(s,true) }
+fn tokenize_inner(s: &str, editing:bool) -> Option<Vec<Tok>> {
     let s = s
         .replace("**", "^")
         .replace("sqrt", "√")
@@ -1247,7 +1256,7 @@ pub fn tokenize(s: &str) -> Option<Vec<Tok>> {
         let rest: String = cs[i..].iter().collect();
         let mut matched = false;
         for f in [
-            "asin", "acos", "atan", "sinh", "cosh", "tanh", "sin", "cos", "tan", "ln", "log", "√",
+            "pow10", "pow2", "recip", "trunc", "sign", "logb", "root", "nCr", "nPr", "asinh", "acosh", "atanh", "floor", "ceil", "gamma", "cbrt", "log2", "exp", "sec", "csc", "cot", "asin", "acos", "atan", "sinh", "cosh", "tanh", "sin", "cos", "tan", "ln", "log", "√",
             "abs",
         ] {
             if rest.starts_with(f) {
@@ -1266,15 +1275,23 @@ pub fn tokenize(s: &str) -> Option<Vec<Tok>> {
         if matched {
             continue;
         }
+        if editing && rest.starts_with("Ans") {v.push(Tok::Ans);i+=3;continue;}
+        if editing && rest.starts_with("i") {v.push(Tok::I);i+=1;continue;}
         if rest.starts_with("pi") {
             v.push(Tok::Pi);
             i += 2;
             continue;
         }
+        if editing && rest.starts_with("mod") {v.push(Tok::Op('m'));i+=3;continue;}
         v.push(match c {
             '+' | '−' | '×' | '÷' | '^' => Tok::Op(c),
             '-' => Tok::Op('−'),
+            'x' | 'X' if editing => Tok::X,
             '*' | 'x' | 'X' => Tok::Op('×'),
+            '=' if editing => Tok::Equals,
+            ';' if editing => Tok::Sep,
+            '<'|'>'|'≤'|'≥' if editing => Tok::Cmp(c),
+            'e' if editing => Tok::E,
             '/' => Tok::Op('÷'),
             '(' | '[' => Tok::LParen,
             ')' | ']' => Tok::RParen,
@@ -1532,7 +1549,7 @@ mod tests {
             let rest: String = cs[i..].iter().collect();
             let mut matched = false;
             for f in [
-                "asin", "acos", "atan", "sinh", "cosh", "tanh", "sin", "cos", "tan", "ln", "logb",
+                "pow10", "pow2", "recip", "trunc", "sign", "logb", "root", "nCr", "nPr", "asinh", "acosh", "atanh", "floor", "ceil", "gamma", "cbrt", "log2", "exp", "sec", "csc", "cot", "asin", "acos", "atan", "sinh", "cosh", "tanh", "sin", "cos", "tan", "ln", "logb",
                 "log", "√", "root", "nCr", "nPr",
             ] {
                 if rest.starts_with(f) {
@@ -1749,4 +1766,4 @@ mod tests {
         assert_eq!(e.solve(&toks("x³−6x²+11x−6=0")), Ok(vec![1.0, 2.0, 3.0]));
         assert_eq!(e.solve(&toks("x³=27")), Ok(vec![3.0]));
     }
-}
+                }
