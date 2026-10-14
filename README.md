@@ -1,6 +1,6 @@
 # Android Calculator (Rust)
 
-Rust rewrite of the original Java calculator (version 2.6.0.0). The app itself is Rust: it runs as an
+Rust rewrite of the original Java calculator (version 2.6.0.1). The app itself is Rust: it runs as an
 Android `NativeActivity` (`android-activity` crate) and draws the UI itself. A small optional Java add-on
 (`android/src/main/java`) adds what needs Android classes: home screen widget, quick settings tile,
 floating calculator, voice input, text-to-speech/TalkBack announcements, background update check and
@@ -73,7 +73,7 @@ Configure these repository Actions secrets before publishing:
 RELEASE_KEYSTORE_BASE64, RELEASE_KEYSTORE_PASSWORD, RELEASE_KEY_ALIAS.
 Do not commit a production or release keystore to the repository.
 
-## 2.6.0.0
+## 2.6.0.1
 
 - Back navigation remembers the origin screen, including Settings -> What's New -> Settings.
 - Tap an expression to position a character cursor, including inside numbers. Insert/delete there. Long press still opens copy/paste.
@@ -88,3 +88,11 @@ Do not commit a production or release keystore to the repository.
 Handwriting input is NOT included: a clean finger-stroke prototype was misread by the bundled printed-text OCR. A trained offline handwriting recognizer and real-device stroke tests are needed before shipping it.
 
 Checks: Rust unit tests, Clippy, Android-target Rust checking and 720x1600 screen renders. Android dialog/keyboard and PNG share behavior still need device testing on the Poco C65. The new labels are English.
+
+### 2.6.0.1 performance fix
+
+- Reuse parsed fonts for expression cursor measurements instead of reloading both TTF files on each keypress.
+- Fill opaque rectangle centers directly; keep rounded edges and all features unchanged.
+- Release-mode host benchmark at 720x1600: layout plus drawing about 69 ms before, 3.7 ms after. This is not a Poco C65 latency measurement.
+- Added regression tests for font reuse and pixel-equivalent rectangle fills.
+- Reproduce: `cargo run --release --example perf`.
