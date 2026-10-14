@@ -501,6 +501,13 @@ fn effect(
             env.call_method(&cm, "setPrimaryClip", "(Landroid/content/ClipData;)V", &[JValue::Object(&clip)])?; Ok(())
         });
         }
+        Effect::InputDialog(title,text,kind) => {
+            let arg=serde_json::json!({"title":title,"text":text,"kind":kind}).to_string();
+            if crate::addon::call(j,"inputDialog",&arg).is_none(){let _=tx.send(Msg::Toast("Text editor unavailable".into()));}
+        }
+        Effect::ShareImage(line,result) => {
+            if crate::addon::call(j,"shareImage",&serde_json::json!({"line":line,"result":result}).to_string()).is_none(){let _=tx.send(Msg::Toast("Image sharing unavailable".into()));}
+        }
         Effect::Keyboard(_) => {}
         Effect::Speak(text) => {
             let _ = crate::addon::speak(
@@ -941,6 +948,12 @@ fn android_main(a: AndroidApp) {
             dirty = true;
         }
         let mut fx: Vec<Effect> = vec![];
+        if let Some(text)=crate::addon::call(j,"dialogResult","") {
+            if let Ok(value)=serde_json::from_str::<serde_json::Value>(&text) {
+                app.dialog_result(value["kind"].as_u64().unwrap_or(0) as u8,value["text"].as_str().unwrap_or(""));
+                fx.push(Effect::Save);dirty=true;
+            }
+        }
         if resumed {
             resumed = false;
             if VOICE_PENDING.swap(false, std::sync::atomic::Ordering::Relaxed) {
@@ -1058,6 +1071,11 @@ fn android_main(a: AndroidApp) {
                             dirty = true;
                         }
                         MotionAction::Move => {
+                            if let Some(i) = frame.hit(x,y) {
+                                if let Some(act @ Action::MarketPoint(_)) = frame.action(i) {
+                                    fx.extend(app.handle(&act)); pressed = Some(i); dirty = true; return InputStatus::Handled;
+                                }
+                            }
                             if let Some((x0, y0, t, scrolling)) = down {
                                 let moved = ((x - x0).powi(2) + (y - y0).powi(2)).sqrt() > 10.0 * d;
                                 let in_scroll =
@@ -1314,4 +1332,4 @@ pub extern "system" fn Java_com_example_androidcalculator_rust_Addon_nativeEval<
     env.new_string(out)
         .map(|o| o.into_raw())
         .unwrap_or(std::ptr::null_mut())
-}
+                }
