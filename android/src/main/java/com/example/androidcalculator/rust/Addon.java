@@ -12,6 +12,57 @@ import java.util.concurrent.TimeUnit;
 
 /** Small helpers the Rust app calls through JNI. Every method returns null when a feature is unavailable. */
 public final class Addon {
+    private static volatile String dialogValue;
+    public static String inputDialog(Context c, String arg) {
+        if (!(c instanceof Activity)) return null;
+        final Activity a=(Activity)c;
+        try {
+            final org.json.JSONObject obj=new org.json.JSONObject(arg);
+            a.runOnUiThread(() -> {
+                try {
+                    final android.widget.EditText input=new android.widget.EditText(a);
+                    input.setText(obj.optString("text"));input.setSingleLine(false);
+                    input.setInputType(android.text.InputType.TYPE_CLASS_TEXT|android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE|android.text.InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
+                    input.setMinLines(3);input.setMaxLines(8);input.setSelectAllOnFocus(true);
+                    input.setFilters(new android.text.InputFilter[]{new android.text.InputFilter.LengthFilter(2000)});
+                    new android.app.AlertDialog.Builder(a).setTitle(obj.optString("title")).setView(input)
+                        .setNegativeButton("Cancel",null).setPositiveButton("OK",(dialog,which)-> {
+                            try {dialogValue=new org.json.JSONObject().put("kind",obj.optInt("kind")).put("text",input.getText().toString()).toString();}catch(Exception ignored){}
+                        }).show();input.requestFocus();
+                }catch(Throwable ignored){}
+            });return "ok";
+        }catch(Exception ex){return null;}
+    }
+    public static String dialogResult(Context c,String unused){String result=dialogValue;dialogValue=null;return result;}
+    public static String shareImage(Context c,String arg) {
+        if (!(c instanceof Activity)) return null;
+        final Activity a=(Activity)c;
+        try {
+            final org.json.JSONObject obj=new org.json.JSONObject(arg);
+            a.runOnUiThread(()-> {
+                try {
+                    final int width=1080;
+                    android.text.TextPaint title=new android.text.TextPaint(android.graphics.Paint.ANTI_ALIAS_FLAG);title.setColor(0xff667085);title.setTextSize(36);
+                    android.text.TextPaint expression=new android.text.TextPaint(android.graphics.Paint.ANTI_ALIAS_FLAG);expression.setColor(0xff202938);expression.setTextSize(54);
+                    android.text.TextPaint result=new android.text.TextPaint(android.graphics.Paint.ANTI_ALIAS_FLAG);result.setColor(0xff315ee8);result.setTextSize(76);result.setTypeface(android.graphics.Typeface.DEFAULT_BOLD);
+                    android.text.StaticLayout l=android.text.StaticLayout.Builder.obtain(obj.optString("line"),0,obj.optString("line").length(),expression,936).setIncludePad(false).build();
+                    String value="= "+obj.optString("result");
+                    android.text.StaticLayout r=android.text.StaticLayout.Builder.obtain(value,0,value.length(),result,936).setIncludePad(false).build();
+                    int height=200+l.getHeight()+r.getHeight()+120;
+                    android.graphics.Bitmap bitmap=android.graphics.Bitmap.createBitmap(width,height,android.graphics.Bitmap.Config.ARGB_8888);
+                    android.graphics.Canvas canvas=new android.graphics.Canvas(bitmap);canvas.drawColor(0xfff7f9ff);canvas.drawText("Calculator",72,80,title);
+                    canvas.save();canvas.translate(72,140);l.draw(canvas);canvas.restore();
+                    canvas.save();canvas.translate(72,180+l.getHeight());r.draw(canvas);canvas.restore();
+                    java.io.File folder=new java.io.File(c.getCacheDir(),"shared");folder.mkdirs();
+                    java.io.File file=new java.io.File(folder,"calculation.png");
+                    try(java.io.FileOutputStream stream=new java.io.FileOutputStream(file)){bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG,100,stream);}bitmap.recycle();
+                    android.net.Uri uri=androidx.core.content.FileProvider.getUriForFile(c,c.getPackageName()+".files",file);
+                    Intent intent=new Intent(Intent.ACTION_SEND).setType("image/png").putExtra(Intent.EXTRA_STREAM,uri).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                    intent.setClipData(android.content.ClipData.newRawUri("Calculation",uri));a.startActivity(Intent.createChooser(intent,"Share calculation"));
+                }catch(Throwable ex){android.widget.Toast.makeText(a,"Could not share image",android.widget.Toast.LENGTH_LONG).show();}
+            });return "ok";
+        }catch(Exception ex){return null;}
+    }
     private static TextToSpeech tts;
     static volatile String voiceResult = null;
 
