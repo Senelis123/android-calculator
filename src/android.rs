@@ -856,6 +856,13 @@ fn android_main(a: AndroidApp) {
         .and_then(|s| serde_json::from_str(&s).ok())
         .unwrap_or_default();
     let mut app = App::new(saved);
+    // Persist the "last seen version" right away so What's New shows only once per update.
+    if let Ok(js) = serde_json::to_string(&app.s) {
+        let tmp = data.join("saved.json.tmp");
+        if std::fs::write(&tmp, js).is_ok() {
+            let _ = std::fs::rename(&tmp, data.join("saved.json"));
+        }
+    }
     if !crash_text.trim().is_empty() {
         app.crash = Some(crash_text.trim().to_string());
     }
