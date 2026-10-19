@@ -1,6 +1,6 @@
 # Android Calculator (Rust)
 
-Rust rewrite of the original Java calculator (version 2.6.0.2). The app itself is Rust: it runs as an
+Rust rewrite of the original Java calculator (version 2.7.0.0). The app itself is Rust: it runs as an
 Android `NativeActivity` (`android-activity` crate) and draws the UI itself. A small optional Java add-on
 (`android/src/main/java`) adds what needs Android classes: home screen widget, quick settings tile,
 floating calculator, voice input, text-to-speech/TalkBack announcements, background update check and
@@ -72,6 +72,18 @@ The Markets screen shows informational cryptocurrency and stock quotes on demand
 Configure these repository Actions secrets before publishing:
 RELEASE_KEYSTORE_BASE64, RELEASE_KEYSTORE_PASSWORD, RELEASE_KEY_ALIAS.
 Do not commit a production or release keystore to the repository.
+
+## 2.7.0.0
+
+- Games: 2048, 15-puzzle, Tetris, Snake and Minesweeper (Tools → Games), with best scores saved.
+- Programmer mode: hex, octal, binary, bitwise operations and shifts.
+- Graph up to 3 functions at once, with numeric intersection points.
+- Quiz: new physics and geometry modes, streaks and per-mode records.
+- Photo solver now offers step-by-step solutions.
+- Formula cheat sheet in Lithuanian and English.
+- Weighted grade average tool.
+- UI refresh: display card, pill chips, softer rounded keys, circular back button.
+- Many new translations in all 7 languages; more of the UI is now translated.
 
 ## 2.6.0.2
 
