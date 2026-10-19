@@ -17,3 +17,6 @@ mod android;
 mod addon;
 pub mod word;
 pub mod learning;
+pub mod games;
+pub mod prog;
+pub mod cheatsheet;

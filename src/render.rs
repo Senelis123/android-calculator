@@ -30,14 +30,14 @@ pub fn draw(
                 r, label, px, kind, ..
             } => {
                 let (bg, fg, radius, shadow) = match kind {
-                    Kind::Digit => (t.key, t.key_text, 12.0 * d, true),
-                    Kind::Op => (t.key_op, t.key_text, 12.0 * d, true),
-                    Kind::Sci => (t.key_op, t.key_text, 10.0 * d, false),
-                    Kind::Eq => (t.key_eq, t.key_eq_text, 14.0 * d, true),
+                    Kind::Digit => (t.key, t.key_text, 14.0 * d, true),
+                    Kind::Op => (t.key_op, t.key_text, 14.0 * d, true),
+                    Kind::Sci => (t.key_op, t.key_text, 12.0 * d, false),
+                    Kind::Eq => (t.key_eq, t.key_eq_text, 16.0 * d, true),
                     Kind::Flat => (t.bg, t.key_text, 8.0 * d, false),
-                    Kind::Chip => (t.chip, t.key_text, 10.0 * d, false),
-                    Kind::ChipOn => (t.chip_on, t.chip_on_text, 10.0 * d, false),
-                    Kind::Row => (t.chip, t.key_text, 10.0 * d, false),
+                    Kind::Chip => (t.chip, t.key_text, r.h / 2.0, false),
+                    Kind::ChipOn => (t.chip_on, t.chip_on_text, r.h / 2.0, false),
+                    Kind::Row => (t.chip, t.key_text, 12.0 * d, false),
                     Kind::Invisible => (t.bg, t.key_text, 0.0, false),
                 };
                 if *kind == Kind::Invisible {

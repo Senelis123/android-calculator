@@ -48,6 +48,9 @@ impl App {
                         .any(|t| matches!(t, Tok::Func("sin" | "cos" | "tan")));
                     self.graph_span = if trig && self.s.degrees { 360.0 } else { 10.0 };
                 }
+                if *s == Screen::Steps {
+                    self.steps_src = None;
+                }
                 if *s == Screen::Converter && self.s.conv_cat == CURRENCY_CAT {
                     fx.push(Effect::FetchRates);
                 }
@@ -170,17 +173,39 @@ impl App {
                     ));
                 }
             }
+            Action::GameNav(k) => {
+                let kind = (*k).min(crate::games::GAME_COUNT - 1);
+                if self.game.is_none() || self.game_kind != kind {
+                    self.new_game(kind);
+                }
+                self.navigate(Screen::Game(kind));
+                self.scroll = 0.0;
+            }
+            Action::GameNew => {
+                self.new_game(self.game_kind);
+            }
+            Action::GameMove(c) => self.game_move(*c, &mut fx),
+            Action::GameTap(i) => self.game_tap(*i, &mut fx),
+            Action::Tick => self.game_tick(&mut fx),
+            Action::ProgKey(k) => {
+                self.prog.key(k);
+            }
             Action::QuizMode(mode) => {
-                self.quiz_mode=(*mode).min(2);self.quiz_count=0;self.quiz_score=0;self.next_question();
+                self.quiz_mode=(*mode).min(4);self.quiz_count=0;self.quiz_score=0;self.next_question();
             }
             Action::QuizAnswer(i) => {
                 if !self.quiz_answered {
                     if let Some(q)=&self.quiz_question {
                         let ok=*i==q.answer;
-                        if ok {self.quiz_score+=1;}
+                        if ok {self.quiz_score+=1;self.quiz_streak+=1;}
+                        else {self.quiz_streak=0;}
                         self.quiz_count+=1;self.quiz_answered=true;
-                        self.quiz_feedback=format!("{} {}",if ok {"Correct!"} else {"Not quite."},q.explanation);
-                        self.s.quiz_best[self.quiz_mode]=self.s.quiz_best[self.quiz_mode].max(self.quiz_score);fx.push(Effect::Save);
+                        let prefix=if ok {crate::i18n::t("Correct!")} else {crate::i18n::t("Not quite.")};
+                        self.quiz_feedback=format!("{} {}",prefix,q.explanation);
+                        let score=self.quiz_score;let mode=self.quiz_mode;
+                        self.quiz_record(mode,score);
+                        self.s.quiz_streak_best=self.s.quiz_streak_best.max(self.quiz_streak);
+                        fx.push(Effect::Save);
                     }
                 }
             }
@@ -197,6 +222,25 @@ impl App {
             Action::Set("formula_new") => fx.push(Effect::InputDialog("Name on first line, formula on second line".into(),"Rectangle area\nwidth*height".into(),3)),
             Action::Set("stats_input") => fx.push(Effect::InputDialog("Data: numbers separated by spaces (decimal point)".into(),self.stats_data.iter().map(|v|v.to_string()).collect::<Vec<_>>().join(" "),5)),
             Action::Set("stats_pie") => self.stats_pie = !self.stats_pie,
+            Action::Set("graph_fns") => {
+                let cur = self.graph_toks.iter().map(|t| display_tokens(t)).collect::<Vec<_>>().join("\n");
+                let hint = if cur.is_empty() { "x^2 - 2\nsin(x)".into() } else { cur };
+                fx.push(Effect::InputDialog(crate::i18n::t("Up to 3 functions of x, one per line").into(), hint, 6));
+            }
+            Action::Set("graph_clear") => self.graph_toks.clear(),
+            Action::Set("photo_steps") => {
+                if let PhotoState::Done { tokens, .. } = &self.photo {
+                    self.steps_src = Some(tokens.clone());
+                    self.navigate(Screen::Steps);
+                    self.scroll = 0.0;
+                }
+            }
+            Action::Set("mines_flag") => self.mines_flag = !self.mines_flag,
+            Action::Set("prog_b2") => self.prog.set_base(2),
+            Action::Set("prog_b8") => self.prog.set_base(8),
+            Action::Set("prog_b10") => self.prog.set_base(10),
+            Action::Set("prog_b16") => self.prog.set_base(16),
+            Action::Set("accent_custom") => fx.push(Effect::InputDialog(crate::i18n::t("Accent color as #RRGGBB (for example #1E6FD9)").into(),"#1E6FD9".into(),7)),
             Action::ShareHistoryImage(i) => {
                 if let Some(h)=self.s.history.get(*i) {fx.push(Effect::ShareImage(h.expr.clone(),h.result.clone()));}
             }
@@ -267,7 +311,7 @@ impl App {
                 }
             }
             Action::ToggleSci => self.s.sci = !self.s.sci,
-            Action::CycleTheme => self.s.theme = (self.s.theme + 1) % 3,
+            Action::CycleTheme => self.s.theme = (self.s.theme + 1) % 4,
             Action::CycleLang => {
                 let n = crate::i18n::LANGS.len() as i32;
                 self.s.lang = if self.s.lang + 1 >= n {

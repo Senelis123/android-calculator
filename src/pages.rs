@@ -559,7 +559,8 @@ impl App {
                         crate::i18n::t("Automatic"),
                         crate::i18n::t("Light"),
                         crate::i18n::t("Dark"),
-                    ][self.s.theme as usize % 3],
+                        crate::i18n::t("Black (AMOLED)"),
+                    ][self.s.theme as usize % 4],
                     Action::CycleTheme,
                 );
                 row(
@@ -640,7 +641,7 @@ impl App {
                 row(
                     out,
                     &mut y,
-                    "Show exact fraction result",
+                    crate::i18n::t("Show exact fraction result"),
                     if self.show_frac { "On" } else { "Off" },
                     Action::Set("fraction"),
                 );
@@ -653,13 +654,21 @@ impl App {
                     crate::i18n::t("Purple"),
                     crate::i18n::t("Red"),
                     crate::i18n::t("Phone colors"),
-                ][self.s.accent as usize % 7];
+                    crate::i18n::t("Custom"),
+                ][self.s.accent as usize % 8];
                 row(
                     out,
                     &mut y,
                     crate::i18n::t("Color"),
                     acc,
                     Action::Set("accent"),
+                );
+                row(
+                    out,
+                    &mut y,
+                    crate::i18n::t("Custom color"),
+                    &format!("#{:06X}", self.s.custom_accent),
+                    Action::Set("accent_custom"),
                 );
                 row(
                     out,
@@ -839,10 +848,10 @@ impl App {
                 );
             }
             Screen::Tools => {
-                row(out,&mut y,"Quiz","›",Action::Nav(Screen::Quiz));
-                row(out,&mut y,"My formulas","›",Action::Nav(Screen::Formulas));
-                row(out,&mut y,"Statistics charts","›",Action::Nav(Screen::StatsCharts));
-                row(out,&mut y,"Share calculation as image","›",Action::Set("share_image"));
+                row(out,&mut y,crate::i18n::t("Quiz"),"›",Action::Nav(Screen::Quiz));
+                row(out,&mut y,crate::i18n::t("My formulas"),"›",Action::Nav(Screen::Formulas));
+                row(out,&mut y,crate::i18n::t("Statistics charts"),"›",Action::Nav(Screen::StatsCharts));
+                row(out,&mut y,crate::i18n::t("Share calculation as image"),"›",Action::Set("share_image"));
                 row(
                     out,
                     &mut y,
@@ -1014,17 +1023,21 @@ impl App {
                 };
                 y += n_rows as f32 * 64.0 * d + 6.0 * d;
                 if def.list && !self.list.is_empty() {
-                    para(
-                        out,
-                        &mut y,
-                        &self
+                    let shown = if tool == crate::tools::T_GRADES {
+                        self.list
+                            .chunks(2)
+                            .filter_map(|c| match c { [g, w] => Some(format!("{} (×{})", display_num(*g), display_num(*w))), [g] => Some(display_num(*g)), _ => None })
+                            .collect::<Vec<_>>()
+                            .join(";  ")
+                    } else {
+                        self
                             .list
                             .iter()
                             .map(|v| display_num(*v))
                             .collect::<Vec<_>>()
-                            .join(";  "),
-                        14.0 * d,
-                    );
+                            .join(";  ")
+                    };
+                    para(out, &mut y, &shown, 14.0 * d);
                 }
                 let outs = if tool == crate::tools::T_BASES {
                     crate::tools::bases(&self.fields[0], self.tool_mode)

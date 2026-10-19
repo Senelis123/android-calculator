@@ -238,9 +238,13 @@ impl App {
             Screen::Constants => crate::i18n::t("Constants"),
             Screen::Steps => crate::i18n::t("Equation steps"),
             Screen::Graph3D => crate::i18n::t("3D graph"),
-            Screen::Quiz => "Quiz",
-            Screen::Formulas => "My formulas",
-            Screen::StatsCharts => "Statistics charts",
+            Screen::Quiz => crate::i18n::t("Quiz"),
+            Screen::Formulas => crate::i18n::t("My formulas"),
+            Screen::StatsCharts => crate::i18n::t("Statistics charts"),
+            Screen::Games => crate::i18n::t("Games"),
+            Screen::Game(k) => crate::i18n::t(crate::app::game_names()[k.min(crate::games::GAME_COUNT - 1)]),
+            Screen::Prog => crate::i18n::t("Programmer"),
+            Screen::Cheat => crate::i18n::t("Formula sheet"),
         };
         let title = match (&self.screen, &self.market_sel) {
             (Screen::MarketDetail, Some(q)) => format!("{}  {}", q.symbol, q.name),
@@ -252,10 +256,10 @@ impl App {
         };
         let h = 56.0 * d;
         out.push(W::Button {
-            r: Rect::new(4.0 * d, 4.0 * d, 48.0 * d, 48.0 * d),
+            r: Rect::new(8.0 * d, 8.0 * d, 40.0 * d, 40.0 * d),
             label: "‹".into(),
-            px: 30.0 * d,
-            kind: Kind::Flat,
+            px: 28.0 * d,
+            kind: Kind::Chip,
             action: Action::Back,
         });
         out.push(W::Text {

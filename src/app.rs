@@ -78,6 +78,10 @@ pub struct Saved {
     pub formulas: Vec<crate::learning::Formula>,
     pub quiz_best: [usize;3],
     pub lang: i32, // -1 = phone language, otherwise index into i18n::LANGS (0 = English)
+    pub game_best: [u64; 5], // 2048, fifteen (min moves), tetris, snake, minesweeper wins
+    pub quiz_best_ext: [usize; 2], // physics, geometry
+    pub quiz_streak_best: usize,
+    pub custom_accent: u32, // 0xRRGGBB, used when accent == 7
 }
 
 impl Default for Saved {
@@ -120,6 +124,10 @@ impl Default for Saved {
             formulas: vec![],
             quiz_best: [0;3],
             lang: 0,
+            game_best: [0; 5],
+            quiz_best_ext: [0; 2],
+            quiz_streak_best: 0,
+            custom_accent: 0x1E6FD9,
         }
     }
 }
@@ -151,6 +159,10 @@ pub enum Screen {
     Quiz,
     Formulas,
     StatsCharts,
+    Games,
+    Game(usize),
+    Prog,
+    Cheat,
 }
 
 pub enum PhotoState {
@@ -228,6 +240,12 @@ pub enum Action {
     EditCursor(usize),
     ElementOpen(usize),
     Surface(usize),
+    Tick,
+    GameNav(usize),
+    GameNew,
+    GameMove(u8),
+    GameTap(usize),
+    ProgKey(&'static str),
     None,
 }
 
@@ -274,6 +292,7 @@ pub struct App {
     pub edit_cursor: usize,
     pub market_point: usize,
     pub quiz_mode: usize,
+    pub quiz_streak: usize,
     pub quiz_question: Option<crate::learning::Question>,
     pub quiz_count: usize,
     pub quiz_score: usize,
@@ -328,6 +347,13 @@ pub struct App {
     /// System bar / cutout insets in pixels: left, top, right, bottom.
     pub insets: [f32; 4],
     pub elem_sel: usize,
+    pub game: Option<crate::games::Game>,
+    pub game_kind: usize,
+    pub mines_flag: bool,
+    pub prog: crate::prog::Prog,
+    pub graph_toks: Vec<Vec<Tok>>,
+    pub steps_src: Option<Vec<Tok>>,
+    pub list2: Vec<f64>,
     pub g3_surface: usize,
     pub g3_yaw: f64,
     pub g3_pitch: f64,
@@ -386,7 +412,7 @@ impl App {
             edit_text: None,
             edit_cursor: 0,
             market_point: 0,
-            quiz_mode:0,quiz_question:None,quiz_count:0,quiz_score:0,quiz_feedback:String::new(),quiz_answered:false,
+            quiz_mode:0,quiz_streak:0,quiz_question:None,quiz_count:0,quiz_score:0,quiz_feedback:String::new(),quiz_answered:false,
             formula_sel:None,formula_result:String::new(),stats_data:vec![],stats_pie:false,
             scroll: 0.0,
             content_h: 0.0,
@@ -420,6 +446,13 @@ impl App {
             market_hist_status: String::new(),
             insets: [0.0; 4],
             elem_sel: 0,
+            game: None,
+            game_kind: 0,
+            mines_flag: false,
+            prog: crate::prog::Prog::default(),
+            graph_toks: vec![],
+            steps_src: None,
+            list2: vec![],
             g3_surface: 1,
             g3_yaw: 0.6,
             g3_pitch: 0.7,
@@ -467,8 +500,13 @@ impl App {
             4 => Some([0x7E, 0x57, 0xC2]),
             5 => Some([0xD3, 0x2F, 0x2F]),
             6 => self.system_accent.or(Some([0x1E, 0x6F, 0xD9])),
+            7 => {
+                let c = self.s.custom_accent;
+                Some([(c >> 16) as u8, (c >> 8) as u8, c as u8])
+            }
             _ => None,
         };
+        AMOLED.store(self.s.theme == 3, std::sync::atomic::Ordering::Relaxed);
         LOOK.store(
             acc.map(|c| 0x0100_0000 | (c[0] as u32) << 16 | (c[1] as u32) << 8 | c[2] as u32)
                 .unwrap_or(0),
@@ -494,7 +532,7 @@ impl App {
     pub fn dark(&self) -> bool {
         match self.s.theme {
             1 => false,
-            2 => true,
+            2 | 3 => true,
             _ => self.system_dark,
         }
     }
@@ -566,6 +604,13 @@ impl App {
         }
     }
 
+    pub fn quiz_best(&self, mode: usize) -> usize {
+        if mode < 3 { self.s.quiz_best[mode] } else { self.s.quiz_best_ext[(mode - 3).min(1)] }
+    }
+    fn quiz_record(&mut self, mode: usize, score: usize) {
+        if mode < 3 { self.s.quiz_best[mode] = self.s.quiz_best[mode].max(score); }
+        else { let i = (mode - 3).min(1); self.s.quiz_best_ext[i] = self.s.quiz_best_ext[i].max(score); }
+    }
     pub fn next_question(&mut self) {
         self.seed = self.seed.wrapping_mul(6364136223846793005).wrapping_add(1);
         let mut q=crate::learning::question(self.seed,self.quiz_mode);
@@ -588,12 +633,154 @@ impl App {
                 }
             }
             5 => match crate::learning::dataset(text){Ok(v)=>self.stats_data=v,Err(e)=>self.toast=Some(e)},
+            6 => {
+                self.graph_toks = text
+                    .lines()
+                    .filter_map(|l| expr::tokenize_edit(l.trim()))
+                    .take(3)
+                    .collect();
+                if self.graph_toks.is_empty() {
+                    self.toast = Some(crate::i18n::t("No function of x found. Example: x^2 - 2x - 3").into());
+                }
+            }
+            7 => {
+                let v = u32::from_str_radix(text.trim().trim_start_matches('#'), 16).unwrap_or(0);
+                if text.trim().trim_start_matches('#').chars().count() == 6 && v <= 0xFFFFFF {
+                    self.s.custom_accent = v;
+                    self.s.accent = 7;
+                    self.apply_look();
+                } else {
+                    self.toast = Some(crate::i18n::t("Use six hex digits, for example #1E6FD9").into());
+                }
+            }
             _=>{}
         }
     }
 
     pub fn navigate(&mut self, screen: Screen) {
         if self.screen != screen { self.nav_stack.push(self.screen); self.screen = screen; }
+    }
+
+    fn next_seed(&mut self) -> u64 {
+        self.seed = self
+            .seed
+            .wrapping_mul(6364136223846793005)
+            .wrapping_add(1442695040888963407);
+        self.seed
+    }
+    pub fn new_game(&mut self, kind: usize) {
+        let kind = kind.min(crate::games::GAME_COUNT - 1);
+        let seed = self.next_seed();
+        self.game = Some(crate::games::new_game(kind, seed));
+        self.game_kind = kind;
+        self.mines_flag = false;
+    }
+    fn save_best(&mut self, i: usize, v: u64, minimize: bool, fx: &mut Vec<Effect>) {
+        let cur = self.s.game_best[i];
+        let better = if minimize { v > 0 && (cur == 0 || v < cur) } else { v > cur };
+        if better {
+            self.s.game_best[i] = v;
+            fx.push(Effect::Save);
+        }
+    }
+    pub fn game_move(&mut self, c: u8, fx: &mut Vec<Effect>) {
+        let mut moved2048 = None;
+        let mut tetris_over = None;
+        let Some(g) = &mut self.game else { return };
+        match g {
+            crate::games::Game::G2048(g) => {
+                if g.mv(c as usize % 4) {
+                    moved2048 = Some((g.score, g.over));
+                }
+            }
+            crate::games::Game::Tetris(t) => match c {
+                0 => {
+                    t.mv(-1);
+                }
+                1 => {
+                    t.mv(1);
+                }
+                2 => {
+                    t.rotate();
+                }
+                3 => {
+                    t.tick();
+                }
+                _ => {
+                    t.hard_drop();
+                    tetris_over = t.over.then_some(t.score);
+                }
+            },
+            crate::games::Game::Snake(s) => s.turn(c as i32),
+            _ => {}
+        }
+        if let Some((sc, over)) = moved2048 {
+            self.save_best(0, sc, false, fx);
+            if over {
+                self.toast = Some(crate::i18n::t("Game over").into());
+            }
+        }
+        if let Some(sc) = tetris_over {
+            self.save_best(2, sc, false, fx);
+        }
+    }
+    pub fn game_tap(&mut self, i: usize, fx: &mut Vec<Effect>) {
+        let mut solved_moves = None;
+        let mut mines_won = false;
+        match &mut self.game {
+            Some(crate::games::Game::Fifteen(f)) => {
+                if f.tap(i) && f.solved() {
+                    solved_moves = Some(f.moves);
+                }
+            }
+            Some(crate::games::Game::Mines(m)) => {
+                let (x, y) = (i % crate::games::MW, i / crate::games::MW);
+                if self.mines_flag {
+                    m.toggle_flag(x, y);
+                } else {
+                    m.reveal(x, y);
+                    mines_won = m.won;
+                }
+            }
+            _ => {}
+        }
+        if let Some(m) = solved_moves {
+            self.save_best(1, m as u64, true, fx);
+            self.toast = Some(crate::i18n::tf("Solved in {} moves!", &[&m]));
+        }
+        if mines_won {
+            self.s.game_best[4] += 1;
+            fx.push(Effect::Save);
+        }
+    }
+    pub fn game_tick(&mut self, fx: &mut Vec<Effect>) {
+        let mut best: Option<(usize, u64)> = None;
+        match &mut self.game {
+            Some(crate::games::Game::Tetris(t)) => {
+                t.tick();
+                if t.over {
+                    best = Some((2, t.score));
+                }
+            }
+            Some(crate::games::Game::Snake(s)) => {
+                s.tick();
+                if s.over {
+                    best = Some((3, s.score as u64));
+                }
+            }
+            _ => {}
+        }
+        if let Some((i, v)) = best {
+            self.save_best(i, v, false, fx);
+            self.toast = Some(crate::i18n::t("Game over").into());
+        }
+    }
+    /// Gravity interval for the visible timed game, if any.
+    pub fn tick_ms(&self) -> Option<u64> {
+        if self.screen != Screen::Game(self.game_kind) {
+            return None;
+        }
+        self.game.as_ref().and_then(crate::games::tick_ms)
     }
 
     pub fn cycle_setting(&mut self, k: &str) {
@@ -612,7 +799,7 @@ impl App {
                 }
             }
             "words" => s.words = !s.words,
-            "accent" => s.accent = (s.accent + 1) % 7,
+            "accent" => s.accent = (s.accent + 1) % 8,
             "contrast" => s.contrast = !s.contrast,
             "keys" => s.key_size = (s.key_size + 1) % 3,
             "font" => s.font_size = (s.font_size + 1) % 4,
@@ -684,16 +871,33 @@ impl App {
                 }
             }
             "add" => {
-                let v = f.replace(',', ".").parse::<f64>();
-                if let Ok(v) = v {
-                    if self.list.len() < 200 {
-                        self.list.push(v);
+                if self.tool == crate::tools::T_GRADES {
+                    let g = self.fields[0].replace(',', ".").parse::<f64>();
+                    let w = if self.fields[1].trim().is_empty() { Ok(1.0) } else { self.fields[1].replace(',', ".").parse::<f64>() };
+                    if let (Ok(g), Ok(w)) = (g, w) {
+                        if self.list.len() < 198 {
+                            self.list.push(g);
+                            self.list.push(w);
+                        }
+                        self.fields[0].clear();
+                        self.fields[1].clear();
+                        self.focus = 0;
                     }
-                    f.clear();
+                } else {
+                    let v = f.replace(',', ".").parse::<f64>();
+                    if let Ok(v) = v {
+                        if self.list.len() < 200 {
+                            self.list.push(v);
+                        }
+                        f.clear();
+                    }
                 }
             }
             "undo" => {
                 self.list.pop();
+                if self.tool == crate::tools::T_GRADES {
+                    self.list.pop();
+                }
             }
             "roll" => self.reroll(),
             "C_" => {
@@ -818,6 +1022,8 @@ impl App {
     }
 }
 
+pub fn game_names() -> &'static [&'static str; crate::games::GAME_COUNT] { &extra_pages::GAME_NAMES }
+
 pub fn thumb(img: &image::RgbImage, max: u32) -> image::RgbImage {
     let (w, h) = img.dimensions();
     if w.max(h) <= max {
@@ -859,6 +1065,7 @@ pub struct Theme {
 }
 
 pub static LOOK: std::sync::atomic::AtomicU32 = std::sync::atomic::AtomicU32::new(0);
+pub static AMOLED: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
 pub static CONTRAST: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
 pub static FONT_SCALE: std::sync::atomic::AtomicU32 = std::sync::atomic::AtomicU32::new(1000);
 pub fn font_scale() -> f32 {
@@ -867,6 +1074,13 @@ pub fn font_scale() -> f32 {
 
 pub fn theme(dark: bool) -> Theme {
     let mut th = base_theme(dark);
+    if dark && AMOLED.load(std::sync::atomic::Ordering::Relaxed) {
+        // AMOLED black: pure black background, near-black surfaces
+        th.bg = [0, 0, 0];
+        th.chip = [0x10, 0x10, 0x14];
+        th.line = [0x22, 0x22, 0x28];
+        th.shadow = [0, 0, 0];
+    }
     if CONTRAST.load(std::sync::atomic::Ordering::Relaxed) {
         // High contrast: pure black/white surfaces with neutral grey keys. The accent keeps its own hue
         // (made lighter on black, darker on white) instead of turning everything yellow.
@@ -1158,7 +1372,7 @@ fn poly_text(p: &expr::Poly) -> String {
     poly_text5(&p.0)
 }
 
-pub const WHATS_NEW: &str = "• Back returns to the screen you came from\n• Tap the expression to edit individual digits at the cursor\n• Drag market charts to inspect recorded prices and times\n• More market data: cap, volume, high/low where available\n• Quiz: arithmetic, equations and chemistry, scoring\n• Save your own formulas with named variables\n• Statistics: bar and pie charts\n• Share calculations as a PNG image\n\nPrevious update:\n• Step-by-step solutions for equations (Tools → Equation steps)\n• Formula calculator: physics and chemistry with constants\n• Geometry calculator: areas, volumes, triangles, circles\n• Periodic table with all 118 elements\n• 3D graphs: z = f(x, y), drag to rotate\n• Scientific mode: many more pages, constants, functions and conversions\n• Smarter offline word problems (English and Lithuanian)\n• Stocks fixed, tap any stock or coin for a price history chart\n• High contrast no longer tints colors yellow\n• Screen layout respects status bar and navigation bar\n• What's new screen redesigned";
+pub const WHATS_NEW: &str = "• Games: 2048, 15-puzzle, Tetris, Snake and Minesweeper (Tools → Games)\n• Programmer mode: hex, octal, binary and bitwise operations\n• Graph up to 3 functions together, with intersection points\n• Quiz: new physics and geometry modes, streaks and records\n• Photo solver now shows step-by-step solutions\n• Formula cheat sheet in Lithuanian and English\n• Weighted grade average tool\n• Fresh look: rounded keys, new display card, custom theme color\n• Lots of small fixes and a smoother interface\n\nPrevious update:\n• Back returns to the screen you came from\n• Tap the expression to edit individual digits at the cursor\n• Drag market charts to inspect recorded prices and times\n• More market data: cap, volume, high/low where available\n• Quiz: arithmetic, equations and chemistry, scoring\n• Save your own formulas with named variables\n• Statistics: bar and pie charts\n• Share calculations as a PNG image";
 
 impl App {
     /// Offline or model result for the word-problem screen.
@@ -1243,6 +1457,8 @@ mod entry;
 mod layout;
 #[path = "advanced_pages.rs"]
 mod advanced_pages;
+#[path = "extra_pages.rs"]
+mod extra_pages;
 #[path = "render.rs"]
 mod render;
 pub use render::{draw,text_in,PHOTO_SRC_W};

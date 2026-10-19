@@ -82,9 +82,11 @@ pub struct Question {
     pub answer: usize,
     pub explanation: String,
 }
+#[allow(clippy::approx_constant)]
 pub fn question(seed: u64, mode: usize) -> Question {
     let n = (seed % 19 + 2) as i64;
     let m = ((seed / 23) % 12 + 1) as i64;
+    let tf = |en: &'static str, args: &[&dyn std::fmt::Display]| crate::i18n::tf(en, args);
     if mode == 2 {
         let z = (seed as usize % 118) + 1;
         let e = crate::science::ELEMENTS[z - 1];
@@ -96,30 +98,106 @@ pub fn question(seed: u64, mode: usize) -> Question {
             })
             .collect();
         return Question {
-            text: format!("Which element has the symbol {}?", e.0),
+            text: tf("Which element has the symbol {}?", &[&e.0]),
             options,
             answer: 0,
-            explanation: format!("{} = {}, atomic number {}", e.0, e.1, z),
+            explanation: format!("{} = {}, {} {}", e.0, e.1, crate::i18n::t("atomic number"), z),
+        };
+    }
+    if mode == 3 {
+        // physics: v = s/t, F = ma, E = mv^2/2, A = Fs, weight with g ~ 10
+        let v = (seed % 16 + 2) as i64;
+        let t = ((seed / 7) % 9 + 2) as i64;
+        let (text, answer, explanation) = match seed % 5 {
+            0 => {
+                let (s_, t_) = (v * t, t);
+                (tf("A car covers {} m in {} s. Speed v = s/t (m/s)?", &[&s_, &t_]), v,
+                 tf("v = s/t = {}/{} = {}", &[&s_, &t_, &v]))
+            }
+            1 => {
+                let a = ((seed / 11) % 8 + 2) as i64;
+                (tf("Force on a {} kg mass with acceleration {} m/s²: F = ma (N)?", &[&v, &a]), v * a,
+                 tf("F = ma = {} × {} = {}", &[&v, &a, &(v * a)]))
+            }
+            2 => {
+                let vv = ((seed / 13) % 9 + 2) as i64;
+                (tf("Kinetic energy of {} kg moving at {} m/s: E = mv²/2 (J)?", &[&v, &vv]), v * vv * vv / 2,
+                 tf("E = {} × {}² / 2 = {}", &[&v, &vv, &(v * vv * vv / 2)]))
+            }
+            3 => {
+                let f = ((seed / 17) % 20 + 5) as i64;
+                (tf("Work done by {} N over {} m: A = Fs (J)?", &[&f, &v]), f * v,
+                 tf("A = Fs = {} × {} = {}", &[&f, &v, &(f * v)]))
+            }
+            _ => {
+                (tf("Weight of {} kg: F = mg, g ≈ 10 m/s² (N)?", &[&v]), v * 10,
+                 tf("F = mg = {} × 10 = {}", &[&v, &(v * 10)]))
+            }
+        };
+        let d = ((seed / 29) % 3 + 1) as i64;
+        return Question {
+            text,
+            options: vec![answer, answer + d, answer - d, answer + 2 * d].into_iter().map(|x| x.to_string()).collect(),
+            answer: 0,
+            explanation,
+        };
+    }
+    if mode == 4 {
+        // geometry: areas, perimeters, pythagorean triples, angle sums, circle with pi ~ 3.14
+        let a = (seed % 12 + 3) as i64;
+        let b = ((seed / 7) % 9 + 2) as i64;
+        let triples = [(3, 4, 5), (6, 8, 10), (5, 12, 13), (8, 15, 17), (7, 24, 25), (9, 12, 15)];
+        let (text, answer, explanation): (String, i64, String) = match seed % 5 {
+            0 => (tf("Rectangle {} by {}: area?", &[&a, &b]), a * b, tf("S = ab = {} × {} = {}", &[&a, &b, &(a * b)])),
+            1 => {
+                let h = b * 2;
+                (tf("Triangle with base {} and height {}: area?", &[&a, &h]), a * b,
+                 tf("S = ah/2 = {} × {} / 2 = {}", &[&a, &h, &(a * b)]))
+            }
+            2 => {
+                let (x, y, z) = triples[(seed as usize / 3) % triples.len()];
+                (tf("Right triangle legs {} and {}: hypotenuse?", &[&x, &y]), z as i64,
+                 tf("c = √({}² + {}²) = {}", &[&x, &y, &z]))
+            }
+            3 => {
+                let a1 = ((seed / 5) % 8 + 2) as i64 * 10;
+                let a2 = ((seed / 11) % 7 + 2) as i64 * 10;
+                (tf("Triangle angles {}° and {}°: the third angle?", &[&a1, &a2]), 180 - a1 - a2,
+                 tf("180° − {}° − {}° = {}°", &[&a1, &a2, &(180 - a1 - a2)]))
+            }
+            _ => {
+                let r = ((seed / 13) % 9 + 1) as i64;
+                let c = (2.0 * 3.14 * r as f64 * 10.0).round() as i64;
+                (tf("Circle radius {}: circumference C = 2πr, π ≈ 3.14 (in 0.1 units)?", &[&r]), c,
+                 tf("C = 2πr = 2 × 3.14 × {} = {}", &[&r, &(c as f64 / 10.0)]))
+            }
+        };
+        let d = ((seed / 29) % 3 + 1) as i64;
+        return Question {
+            text,
+            options: vec![answer, answer + d, answer - d.max(1), answer + 2 * d].into_iter().map(|x| x.to_string()).collect(),
+            answer: 0,
+            explanation,
         };
     }
     let solution=(seed/41%15+1) as i64;
     let (text, answer, explanation) = if mode == 1 {
         (
-            format!("{m}x + {n} = {}. Find x.", m * solution + n),
+            tf("{}x + {} = {}. Find x.", &[&m, &n, &(m * solution + n)]),
             solution,
-            format!("Subtract {n}, then divide by {m}: x = {solution}"),
+            tf("Subtract {}, then divide by {}: x = {}", &[&n, &m, &solution]),
         )
     } else {
         match seed % 3 {
             0 => (
                 format!("{n} + {m} = ?"),
                 n + m,
-                "Add the two numbers".into(),
+                crate::i18n::t("Add the two numbers").to_string(),
             ),
             1 => (
                 format!("{n} × {m} = ?"),
                 n * m,
-                "Multiply the two numbers".into(),
+                crate::i18n::t("Multiply the two numbers").to_string(),
             ),
             _ => (
                 format!("{} ÷ {m} = ?", n * m),

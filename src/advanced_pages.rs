@@ -182,7 +182,7 @@ impl App {
                         y += gh + 10.0 * d;
                         para(out, &mut y, &format!("{} UTC  |  {} {}", fmt_ts(chosen.0,true),fmt_price(chosen.1),q.currency),14.0*d);
                         chips(out,&mut y,&[("◀".into(),Action::MarketPoint(index.saturating_sub(1)),false),("▶".into(),Action::MarketPoint((index+1).min(hist.len()-1)),false)]);
-                        para(out, &mut y, "Drag across the chart. Shows the nearest recorded sample, not every trade.",11.0*d);
+                        para(out, &mut y, crate::i18n::t("Drag across the chart. Shows the nearest recorded sample, not every trade."),11.0*d);
                         let first = hist[0].1;
                         let last = hist[hist.len() - 1].1;
                         let pct = if first != 0.0 { (last / first - 1.0) * 100.0 } else { 0.0 };
@@ -215,28 +215,35 @@ impl App {
                 }
             }
             Screen::Quiz => {
-                chips(out,&mut y,&[("Arithmetic".into(),Action::QuizMode(0),self.quiz_mode==0),("Equations".into(),Action::QuizMode(1),self.quiz_mode==1),("Chemistry".into(),Action::QuizMode(2),self.quiz_mode==2)]);
-                para(out,&mut y,&format!("Score: {} / {}   Best: {} / 10",self.quiz_score,self.quiz_count,self.s.quiz_best[self.quiz_mode]),17.0*d);
-                if self.quiz_count>=10 {heading(out,&mut y,"Round complete!");}
+                chips(out,&mut y,&[
+                    (crate::i18n::t("Arithmetic").into(),Action::QuizMode(0),self.quiz_mode==0),
+                    (crate::i18n::t("Equations").into(),Action::QuizMode(1),self.quiz_mode==1),
+                    (crate::i18n::t("Chemistry").into(),Action::QuizMode(2),self.quiz_mode==2),
+                    (crate::i18n::t("Physics").into(),Action::QuizMode(3),self.quiz_mode==3),
+                    (crate::i18n::t("Geometry").into(),Action::QuizMode(4),self.quiz_mode==4),
+                ]);
+                para(out,&mut y,&format!("{}   {}",crate::i18n::tf("Score: {} / {}",&[&self.quiz_score,&self.quiz_count]),crate::i18n::tf("Best: {} / 10",&[&self.quiz_best(self.quiz_mode)])),17.0*d);
+                if self.s.quiz_streak_best>1 {para(out,&mut y,&crate::i18n::tf("Best streak: {}",&[&self.s.quiz_streak_best]),14.0*d);}
+                if self.quiz_count>=10 {heading(out,&mut y,crate::i18n::t("Round complete!"));}
                 else if let Some(q)=&self.quiz_question {
                     para(out,&mut y,&q.text,22.0*d);
                     for (i,opt) in q.options.iter().enumerate(){row(out,&mut y,opt,if self.quiz_answered && i==q.answer {"✓"}else{""},if self.quiz_answered {Action::None}else{Action::QuizAnswer(i)});}
                 }
                 if !self.quiz_feedback.is_empty(){para(out,&mut y,&self.quiz_feedback,16.0*d);}
-                if self.quiz_question.is_none() || self.quiz_answered || self.quiz_count>=10 {row(out,&mut y,if self.quiz_count>=10 {"New round"}else{"Next question"},"›",Action::Set("quiz_next"));}
+                if self.quiz_question.is_none() || self.quiz_answered || self.quiz_count>=10 {row(out,&mut y,if self.quiz_count>=10 {crate::i18n::t("New round")}else{crate::i18n::t("Next question")},"›",Action::Set("quiz_next"));}
             }
             Screen::Formulas => {
-                para(out,&mut y,"Create formulas with named variables: width*height, mass*speed^2/2. Use explicit * for multiplication. sin, cos, sqrt and pi are supported. Angles use DEG.",14.0*d);
-                row(out,&mut y,"Add formula","+",Action::Set("formula_new"));
+                para(out,&mut y,crate::i18n::t("Create formulas with named variables: width*height, mass*speed^2/2. Use explicit * for multiplication. sin, cos, sqrt and pi are supported. Angles use DEG."),14.0*d);
+                row(out,&mut y,crate::i18n::t("Add formula"),"+",Action::Set("formula_new"));
                 for (i,f) in self.s.formulas.iter().enumerate(){
                     heading(out,&mut y,&f.name);para(out,&mut y,&f.expression,17.0*d);
                     chips(out,&mut y,&[("Calculate".into(),Action::FormulaOpen(i),false),("Delete".into(),Action::FormulaDelete(i),false)]);
                 }
-                if !self.formula_result.is_empty(){heading(out,&mut y,"Result");para(out,&mut y,&self.formula_result,22.0*d);}
+                if !self.formula_result.is_empty(){heading(out,&mut y,crate::i18n::t("Result"));para(out,&mut y,&self.formula_result,22.0*d);}
             }
             Screen::StatsCharts => {
-                row(out,&mut y,"Enter data","›",Action::Set("stats_input"));
-                row(out,&mut y,"Chart",if self.stats_pie {"Pie"}else{"Bars"},Action::Set("stats_pie"));
+                row(out,&mut y,crate::i18n::t("Enter data"),"›",Action::Set("stats_input"));
+                row(out,&mut y,crate::i18n::t("Chart"),if self.stats_pie {crate::i18n::t("Pie")}else{crate::i18n::t("Bars")},Action::Set("stats_pie"));
                 if !self.stats_data.is_empty(){
                     let sum:f64=self.stats_data.iter().sum();let count=self.stats_data.len();
                     para(out,&mut y,&format!("n = {count}  Sum = {}\nMean = {}",display_num(sum),display_num(sum/count as f64)),16.0*d);
@@ -244,7 +251,7 @@ impl App {
                     out.push(W::Fill{r,c:t.chip,radius:8.0*d});
                     let mut lines=vec![];
                     if self.stats_pie {
-                        if self.stats_data.iter().any(|v|*v<0.) || sum<=0. {para(out,&mut y,"Pie charts need nonnegative values and a positive total. Use bars for negatives.",15.0*d);}
+                        if self.stats_data.iter().any(|v|*v<0.) || sum<=0. {para(out,&mut y,crate::i18n::t("Pie charts need nonnegative values and a positive total. Use bars for negatives."),15.0*d);}
                         else {
                             let radius=w*0.34;let center=(r.x+r.w/2.,r.y+r.h/2.);let mut angle=-std::f32::consts::FRAC_PI_2;
                             for (i,v) in self.stats_data.iter().enumerate(){
@@ -263,7 +270,7 @@ impl App {
                     }
                     out.push(W::Plot{r,lines});y=r.bottom()+12.*d;
                     for (i,v) in self.stats_data.iter().enumerate(){row(out,&mut y,&format!("#{}",i+1),&if self.stats_pie && sum>0. {format!("{} ({:.1}%)",display_num(*v),v/sum*100.)}else{display_num(*v)},Action::None);}
-                } else {para(out,&mut y,"Enter up to 60 numbers to plot. For example: 4 8 6 10.",16.0*d);}
+                } else {para(out,&mut y,crate::i18n::t("Enter up to 60 numbers to plot. For example: 4 8 6 10."),16.0*d);}
             }
             Screen::Periodic => {
                 for (i, e) in crate::science::ELEMENTS.iter().enumerate() {
@@ -323,11 +330,12 @@ impl App {
                 }
             }
             Screen::Steps => {
-                let has_x = self.tokens.contains(&Tok::X);
+                let src = self.steps_src.clone().unwrap_or_else(|| self.tokens.clone());
+                let has_x = src.contains(&Tok::X);
                 if !has_x {
                     para(out, &mut y, crate::i18n::t("Type an equation with x in the calculator (for example x² − 5x + 6 = 0 or 2x + 3 = 11), then open this screen."), 15.0 * d);
                 } else {
-                    for line in crate::steps::solve_steps(&self.tokens, self.s.degrees) {
+                    for line in crate::steps::solve_steps(&src, self.s.degrees) {
                         let px = 15.0 * d;
                         let n = (line.chars().count() as f32 * px * 0.6 / (w - 4.0 * d)).ceil().max(1.0);
                         let hh = n * px * 1.4 + 8.0 * d;
@@ -377,17 +385,31 @@ impl App {
                 para(out, &mut y, &crate::i18n::tf("x and y from {} to {}", &[&expr::display_num(-self.g3_span), &expr::display_num(self.g3_span)]), 12.0 * d);
             }
             Screen::Graph => {
-                let toks = self.graph_tokens();
-                if toks.is_empty() {
-                    para(out, &mut y, crate::i18n::t("Type an expression with x in the calculator (e.g. x² − 2x − 3), then open Graph."), 15.0 * d);
+                chips(
+                    out,
+                    &mut y,
+                    &[
+                        (crate::i18n::t("Functions").into(), Action::Set("graph_fns"), !self.graph_toks.is_empty()),
+                        (crate::i18n::t("Clear").into(), Action::Set("graph_clear"), false),
+                        ("−".into(), Action::Set("gzoom-"), false),
+                        ("+".into(), Action::Set("gzoom+"), false),
+                    ],
+                );
+                let multi = !self.graph_toks.is_empty();
+                let fns: Vec<Vec<Tok>> = if multi {
+                    self.graph_toks.clone()
+                } else {
+                    let t0 = self.graph_tokens();
+                    if t0.is_empty() { vec![] } else { vec![t0] }
+                };
+                if fns.is_empty() {
+                    para(out, &mut y, crate::i18n::t("Type an expression with x in the calculator (e.g. x² − 2x − 3), then open Graph. Or tap Functions to draw up to three functions at once."), 15.0 * d);
                 } else {
                     let ev = self.ev();
-                    para(
-                        out,
-                        &mut y,
-                        &format!("y = {}", display_tokens(&toks)),
-                        16.0 * d,
-                    );
+                    for (i, ft) in fns.iter().enumerate() {
+                        let label = if multi { format!("y{} = {}", i + 1, display_tokens(ft)) } else { format!("y = {}", display_tokens(ft)) };
+                        para(out, &mut y, &label, 16.0 * d);
+                    }
                     let gh = w * 0.9;
                     let r = Rect::new(x, y, w, gh);
                     out.push(W::Fill {
@@ -398,20 +420,26 @@ impl App {
                     let span = self.graph_span;
                     let (x0, x1) = (-span, span);
                     let n = 400;
-                    let mut ys = vec![];
-                    for i in 0..=n {
-                        let xv = x0 + (x1 - x0) * i as f64 / n as f64;
-                        ys.push((xv, ev.f_at(&toks, xv)));
+                    let mut all: Vec<Vec<(f64, Option<f64>)>> = vec![];
+                    let mut fin: Vec<f64> = vec![];
+                    for ft in &fns {
+                        let mut ys = vec![];
+                        for i in 0..=n {
+                            let xv = x0 + (x1 - x0) * i as f64 / n as f64;
+                            let yv = ev.f_at(ft, xv);
+                            if let Some(v) = yv {
+                                if v.is_finite() {
+                                    fin.push(v);
+                                }
+                            }
+                            ys.push((xv, yv));
+                        }
+                        all.push(ys);
                     }
-                    let fin: Vec<f64> = ys
-                        .iter()
-                        .filter_map(|p| p.1)
-                        .filter(|v| v.is_finite())
-                        .collect();
                     let (mut y0, mut y1) = (-span, span);
                     if !fin.is_empty() {
                         let mut sorted = fin.clone();
-                        sorted.sort_by(|a, b| a.partial_cmp(b).unwrap());
+                        sorted.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
                         let lo = sorted[sorted.len() / 20];
                         let hi = sorted[sorted.len() - 1 - sorted.len() / 20];
                         if hi > lo {
@@ -420,14 +448,11 @@ impl App {
                             y1 = hi + m;
                         }
                         if y0 > 0.0 {
-                            y0 = -m1(y1);
+                            y0 = -y1.abs() * 0.1;
                         }
                         if y1 < 0.0 {
-                            y1 = m1(y0);
+                            y1 = y0.abs() * 0.1;
                         }
-                    }
-                    fn m1(v: f64) -> f64 {
-                        v.abs() * 0.1
                     }
                     let sx = |xv: f64| r.x + ((xv - x0) / (x1 - x0)) as f32 * r.w;
                     let sy = |yv: f64| r.y + r.h - ((yv - y0) / (y1 - y0)) as f32 * r.h;
@@ -435,25 +460,55 @@ impl App {
                         (2, vec![(r.x, sy(0.0)), (r.right(), sy(0.0))]),
                         (2, vec![(sx(0.0), r.y), (sx(0.0), r.bottom())]),
                     ];
-                    let mut cur: Vec<(f32, f32)> = vec![];
-                    for (xv, yv) in &ys {
-                        match yv {
-                            Some(v)
-                                if v.is_finite() && *v > y0 - (y1 - y0) && *v < y1 + (y1 - y0) =>
-                            {
-                                cur.push((sx(*xv), sy(*v)))
+                    let colors = [1u8, 4u8, 5u8];
+                    for (fi, ys) in all.iter().enumerate() {
+                        let mut cur: Vec<(f32, f32)> = vec![];
+                        for (xv, yv) in ys {
+                            match yv {
+                                Some(v)
+                                    if v.is_finite() && *v > y0 - (y1 - y0) && *v < y1 + (y1 - y0) =>
+                                {
+                                    cur.push((sx(*xv), sy(*v)))
+                                }
+                                _ => {
+                                    if cur.len() > 1 {
+                                        lines.push((colors[fi], std::mem::take(&mut cur)));
+                                    } else {
+                                        cur.clear();
+                                    }
+                                }
                             }
-                            _ => {
-                                if cur.len() > 1 {
-                                    lines.push((1, std::mem::take(&mut cur)));
-                                } else {
-                                    cur.clear();
+                        }
+                        if cur.len() > 1 {
+                            lines.push((colors[fi], cur));
+                        }
+                    }
+                    // intersections of function 1 with the others (numeric scan + bisection)
+                    let mut hits: Vec<(f64, f64)> = vec![];
+                    if fns.len() > 1 {
+                        for other in &fns[1..] {
+                            let diff = |xv: f64| -> Option<f64> { Some(ev.f_at(&fns[0], xv)? - ev.f_at(other, xv)?) };
+                            for xv in expr::numeric_roots(&diff, x0, x1) {
+                                if let Some(yv) = ev.f_at(&fns[0], xv) {
+                                    if yv > y0 && yv < y1 && hits.iter().all(|(hx, _)| (hx - xv).abs() > span * 0.02) {
+                                        hits.push((xv, yv));
+                                    }
+                                }
+                                if hits.len() >= 6 {
+                                    break;
                                 }
                             }
                         }
                     }
-                    if cur.len() > 1 {
-                        lines.push((1, cur));
+                    for (hx, hy) in &hits {
+                        let cx = sx(*hx);
+                        let cy = sy(*hy);
+                        let m = 4.0 * d;
+                        out.push(W::Fill {
+                            r: Rect::new(cx - m, cy - m, 2.0 * m, 2.0 * m),
+                            c: t.key_eq,
+                            radius: m,
+                        });
                     }
                     out.push(W::Plot { r, lines });
                     out.push(W::Text {
@@ -475,66 +530,73 @@ impl App {
                         wrap: false,
                     });
                     y += gh + 8.0 * d;
-                    chips(
-                        out,
-                        &mut y,
-                        &[
-                            ("−".into(), Action::Set("gzoom-"), false),
-                            ("+".into(), Action::Set("gzoom+"), false),
-                        ],
-                    );
-                    let f = |xv: f64| ev.f_at(&toks, xv);
-                    let roots = expr::numeric_roots(&f, x0, x1);
-                    if !roots.is_empty() {
-                        row(
-                            out,
-                            &mut y,
-                            crate::i18n::t("Zeros"),
-                            &roots
-                                .iter()
-                                .take(4)
-                                .map(|v| display_num(*v))
-                                .collect::<Vec<_>>()
-                                .join("; "),
-                            Action::None,
-                        );
-                    }
-                    if let Some(v0) = f(0.0) {
-                        row(out, &mut y, "y(0)", &display_num(v0), Action::UseValue(v0));
-                    }
-                    if let Ok(pl) = ev.eval_poly(&toks) {
-                        row(out, &mut y, "f′(x)", &poly_text(&pl.deriv()), Action::None);
-                        let mut ic = [0.0; 5];
-                        for i in 0..4 {
-                            ic[i + 1] = pl.0[i] / (i + 1) as f64;
-                        }
-                        row(
-                            out,
-                            &mut y,
-                            "∫ f(x) dx",
-                            &format!("{} + C", poly_text5(&ic)),
-                            Action::None,
-                        );
-                    } else {
-                        let dv = |xv: f64| Some((f(xv + 1e-5)? - f(xv - 1e-5)?) / 2e-5);
-                        if let Some(v) = dv(1.0) {
+                    if !hits.is_empty() {
+                        heading(out, &mut y, crate::i18n::t("Intersections"));
+                        for (hx, hy) in hits.iter() {
                             row(
                                 out,
                                 &mut y,
-                                "f′(1)",
-                                &display_num((v * 1e6).round() / 1e6),
-                                Action::None,
+                                &format!("x = {}", display_num(*hx)),
+                                &format!("y = {}", display_num(*hy)),
+                                Action::UseValue(*hx),
                             );
                         }
                     }
-                    if let Some(iv) = expr::integrate(&f, 0.0, 1.0) {
-                        row(
-                            out,
-                            &mut y,
-                            "∫₀¹ f(x) dx",
-                            &display_num((iv * 1e9).round() / 1e9),
-                            Action::UseValue(iv),
-                        );
+                    if !multi {
+                        let toks = &fns[0];
+                        let f = |xv: f64| ev.f_at(toks, xv);
+                        let roots = expr::numeric_roots(&f, x0, x1);
+                        if !roots.is_empty() {
+                            row(
+                                out,
+                                &mut y,
+                                crate::i18n::t("Zeros"),
+                                &roots
+                                    .iter()
+                                    .take(4)
+                                    .map(|v| display_num(*v))
+                                    .collect::<Vec<_>>()
+                                    .join("; "),
+                                Action::None,
+                            );
+                        }
+                        if let Some(v0) = f(0.0) {
+                            row(out, &mut y, "y(0)", &display_num(v0), Action::UseValue(v0));
+                        }
+                        if let Ok(pl) = ev.eval_poly(toks) {
+                            row(out, &mut y, "f′(x)", &poly_text(&pl.deriv()), Action::None);
+                            let mut ic = [0.0; 5];
+                            for i in 0..4 {
+                                ic[i + 1] = pl.0[i] / (i + 1) as f64;
+                            }
+                            row(
+                                out,
+                                &mut y,
+                                "∫ f(x) dx",
+                                &format!("{} + C", poly_text5(&ic)),
+                                Action::None,
+                            );
+                        } else {
+                            let dv = |xv: f64| Some((f(xv + 1e-5)? - f(xv - 1e-5)?) / 2e-5);
+                            if let Some(v) = dv(1.0) {
+                                row(
+                                    out,
+                                    &mut y,
+                                    "f′(1)",
+                                    &display_num((v * 1e6).round() / 1e6),
+                                    Action::None,
+                                );
+                            }
+                        }
+                        if let Some(iv) = expr::integrate(&f, 0.0, 1.0) {
+                            row(
+                                out,
+                                &mut y,
+                                "∫₀¹ f(x) dx",
+                                &display_num((iv * 1e9).round() / 1e9),
+                                Action::UseValue(iv),
+                            );
+                        }
                     }
                 }
             }
@@ -575,6 +637,10 @@ impl App {
                         out.push(W::Button { r: Rect::new(x, y, bw2, 44.0 * d), label: crate::i18n::t("Share").into(), px: 15.0 * d, kind: Kind::Chip, action: Action::Set("photo_share") });
                         out.push(W::Button { r: Rect::new(x + bw2 + 10.0 * d, y, bw2, 44.0 * d), label: crate::i18n::t("Solve as word problem").into(), px: 14.0 * d, kind: Kind::Chip, action: Action::Set("photo_words") });
                         y += 52.0 * d;
+                        if tokens.contains(&Tok::X) {
+                            out.push(W::Button { r: Rect::new(x, y, w, 44.0 * d), label: crate::i18n::t("Detailed steps").into(), px: 15.0 * d, kind: Kind::Chip, action: Action::Set("photo_steps") });
+                            y += 52.0 * d;
+                        }
                         if !others.is_empty() {
                             heading(out, &mut y, crate::i18n::t("Other problems in the photo"));
                             for (i, (t2, _)) in others.iter().enumerate() { row(out, &mut y, &t2.clone(), "›", Action::PhotoPick(i)); }
@@ -621,7 +687,7 @@ impl App {
                 }
                 y += self.gallery.len().div_ceil(cols) as f32 * (cw + gap);
             }
-            _=>{}
+            _ => { return self.build_extra_page(out, area, d, t); }
         }
         y-area.y+24.0*d
     }

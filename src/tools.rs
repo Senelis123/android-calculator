@@ -25,6 +25,7 @@ pub const TOOLS: &[ToolDef] = &[
     ToolDef { name: "Geometry", fields: &["A", "B", "C"], modes: crate::science::GEO_MODES, list: false },
     ToolDef { name: "Physics formulas", fields: &["A", "B", "C"], modes: crate::science::PHYS_MODES, list: false },
     ToolDef { name: "Chemistry formulas", fields: &["A", "B", "C"], modes: crate::science::CHEM_MODES, list: false },
+    ToolDef { name: "Grades (weighted)", fields: &["Grade", "Weight (credits)"], modes: &[], list: true },
 ];
 
 pub const T_GEO: usize = 16;
@@ -36,6 +37,7 @@ pub const T_MATRIX: usize = 14;
 pub const T_BASES: usize = 12;
 pub const T_RANDOM: usize = 15;
 pub const T_DATES: usize = 9;
+pub const T_GRADES: usize = 19;
 
 /// Fields shown for the current mode (systems / matrices hide unused cells).
 pub fn visible_fields(tool: usize, mode: usize) -> Vec<usize> {
@@ -75,6 +77,7 @@ fn t_dyn(s: &str) -> String {
 pub const OUT_LABELS: &[&str] = &["Result", "You pay", "You save", "New price", "Change", "Monthly payment", "First payment", "Last payment", "Total paid", "Interest paid",
     "Final amount", "Interest earned", "Net salary", "Gross salary", "Income tax (GPM)", "PSD 6.98%", "VSD 12.52%", "Pension fund", "Tax-free amount (NPD)",
     "Employer cost", "Fuel needed", "Trip cost", "Per person", "Total", "Each pays", "Tip", "BMI", "Category", "Underweight", "Normal weight", "Overweight", "Obesity",
+    "Weighted average", "Grades", "Lowest", "Highest", "Add grades with their weights: fill Grade and Weight, then +.",
     "Time", "In minutes", "Days", "Weeks", "Age", "Date", "Count", "Sum", "Mean", "Median", "Mode", "Std. deviation (sample)", "Std. deviation (population)", "Min", "Max", "Range",
     "GCD", "LCM", "Prime", "Factors", "Yes", "No", "Decimal", "Binary", "Octal", "Hex", "Determinant", "Inverse", "No single solution", "Enter numbers", "Invalid date", "Dice", "Coin", "Heads", "Tails",
     "Estimate for 2026: 20% income tax monthly; above 36 average wages a year the extra is taxed at 25-32% in the yearly declaration."];
@@ -127,6 +130,9 @@ fn det3(m: &[[f64; 3]; 3]) -> f64 {
 
 /// Computes outputs; `v` are field values (NaN = empty), `list` the collected list values, `seed` a random seed.
 pub fn compute(tool: usize, mode: usize, v: &[f64], list: &[f64], seed: u64) -> Vec<(String, String)> {
+    if tool == T_GRADES {
+        return grades(list);
+    }
     let g = |i: usize| v.get(i).cloned().filter(|x| x.is_finite());
     let z = |i: usize| g(i).unwrap_or(0.0);
     let n = display_num;
@@ -311,6 +317,29 @@ pub fn bases(raw: &str, mode: usize) -> Vec<(String, String)> {
     let Ok(v) = u64::from_str_radix(digits, radix) else { return vec![] };
     let s = if neg { "−" } else { "" };
     vec![(t("Decimal").into(), format!("{s}{v}")), (t("Binary").into(), format!("{s}{v:b}")), (t("Octal").into(), format!("{s}{v:o}")), (t("Hex").into(), format!("{s}{v:X}"))]
+}
+
+/// Weighted grade average from alternating (grade, weight) pairs.
+fn grades(list: &[f64]) -> Vec<(String, String)> {
+    let pairs: Vec<(f64, f64)> = list.chunks(2).filter_map(|c| match c { [g, w] if *w > 0.0 => Some((*g, *w)), _ => None }).collect();
+    if pairs.is_empty() {
+        return vec![("".into(), t_dyn("Add grades with their weights: fill Grade and Weight, then +."))];
+    }
+    let (mut sw, mut s) = (0.0, 0.0);
+    let mut gs = vec![];
+    for (g, w) in &pairs {
+        sw += g * w;
+        s += w;
+        gs.push(*g);
+    }
+    let avg = sw / s;
+    gs.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
+    vec![
+        (t_dyn("Weighted average"), display_num((avg * 100.0).round() / 100.0)),
+        (t_dyn("Grades"), pairs.len().to_string()),
+        (t_dyn("Lowest"), display_num(gs[0])),
+        (t_dyn("Highest"), display_num(gs[gs.len() - 1])),
+    ]
 }
 
 #[cfg(test)]

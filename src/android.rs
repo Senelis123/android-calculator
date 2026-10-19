@@ -891,17 +891,32 @@ fn android_main(a: AndroidApp) {
     let mut last_y = 0.0f32;
     let mut long_fired = false;
     let mut toast_at: Option<Instant> = None;
+    let mut tick_state: Option<(u64, Instant)> = None;
     let mut resumed = false;
     if app.s.conv_cat == crate::convert::CURRENCY_CAT || app.s.rates.is_none() {
         let _ = 0;
     }
 
     while !quit {
-        let timeout = if down.is_some() || toast_at.is_some() {
+        // timed games (Tetris, Snake) need the loop to wake up for gravity ticks
+        match app.tick_ms() {
+            Some(ms) => {
+                let stale = tick_state.map(|(m, _)| m != ms).unwrap_or(true);
+                if stale {
+                    tick_state = Some((ms, Instant::now() + Duration::from_millis(ms)));
+                }
+            }
+            None => tick_state = None,
+        }
+        let mut timeout = if down.is_some() || toast_at.is_some() {
             Some(Duration::from_millis(60))
         } else {
             None
         };
+        if let Some((_, at)) = tick_state {
+            let rem = at.saturating_duration_since(Instant::now());
+            timeout = Some(timeout.map_or(rem, |cur| cur.min(rem)));
+        }
         a.poll_events(timeout, |event| match event {
             PollEvent::Main(MainEvent::InitWindow { .. }) => {
                 window = a.native_window();
@@ -1206,6 +1221,13 @@ fn android_main(a: AndroidApp) {
                 }
                 _ => InputStatus::Unhandled,
             }) {}
+        }
+        if let Some((ms, at)) = tick_state {
+            if Instant::now() >= at {
+                tick_state = Some((ms, Instant::now() + Duration::from_millis(ms)));
+                fx.extend(app.handle(&Action::Tick));
+                dirty = true;
+            }
         }
         // long press on the display: copy / paste menu
         if let (Some((_, _, t, false)), Some(i)) = (down, pressed) {

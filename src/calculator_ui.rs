@@ -207,7 +207,12 @@ impl App {
     }
 
     fn build_display(&self, out: &mut Vec<W>, r: Rect, d: f32, t: &Theme) {
-        let inner = r.inset(8.0 * d, 4.0 * d);
+        out.push(W::Fill {
+            r: Rect::new(r.x, r.y + 2.0 * d, r.w, r.h - 4.0 * d),
+            c: t.chip,
+            radius: 16.0 * d,
+        });
+        let inner = r.inset(16.0 * d, 4.0 * d);
         // indicators
         let mut ind = vec![];
         if self.s.mem[self.s.mem_slot] != 0.0 {
