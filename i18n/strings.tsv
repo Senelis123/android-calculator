@@ -338,3 +338,104 @@ Refreshing market data…	Atnaujinami rinkos duomenys…	Atjaunina tirgus datus�
 No market data received. Showing no stale values.	Rinkos duomenų negauta. Pasenusios kainos nerodomos.	Tirgus dati nav saņemti. Novecojušas cenas netiek rādītas.	Nie otrzymano danych rynkowych. Nie pokazujemy nieaktualnych cen.	Keine Marktdaten empfangen. Veraltete Kurse werden nicht angezeigt.	Рыночные данные не получены. Устаревшие цены не показываются.	Ринкові дані не отримано. Застарілі ціни не показуються.
 Updated. Data may be delayed depending on the provider.	Atnaujinta. Duomenys gali vėluoti priklausomai nuo teikėjo.	Atjaunināts. Dati var kavēties atkarībā no sniedzēja.	Zaktualizowano. Dane mogą być opóźnione zależnie od dostawcy.	Aktualisiert. Daten können je nach Anbieter verzögert sein.	Обновлено. Данные могут поступать с задержкой в зависимости от поставщика.	Оновлено. Дані можуть надходити із затримкою залежно від постачальника.
 {} • 24h change	{} • pokytis per 24 val.	{} • izmaiņas 24 h	{} • zmiana 24 h	{} • Änderung in 24 Std.	{} • изменение за 24 ч	{} • зміна за 24 год
+
+Games	Žaidimai	Spēles	Gry	Spiele	Игры	Ігри
+15 puzzle	15 dėlionė	15 mīkla	Układanka 15	15-Puzzle	Пятнашки	П'ятнашки
+Tetris	Tetris	Tetris	Tetris	Tetris	Тетрис	Тетріс
+Snake	Gyvatėlė	Čūska	Wąż	Schlange	Змейка	Змійка
+Minesweeper	Minų laukas	Mīnu laukums	Saper	Minensucher	Сапёр	Сапер
+Merge equal tiles and reach 2048	Junk vienodus skaičius ir pasiek 2048	Apvieno vienādus skaitļus un sasniedz 2048	Łącz takie same liczby i zdobądź 2048	Verbinde gleiche Zahlen und erreiche 2048	Соединяй одинаковые числа и доберись до 2048	З'єднуй однакові числа і дійди до 2048
+Slide tiles into order 1 to 15	Išrikiuok skaičius nuo 1 iki 15	Sakārto skaitļus no 1 līdz 15	Ułóż liczby od 1 do 15	Bringe die Zahlen von 1 bis 15 in Reihenfolge	Расставь числа от 1 до 15 по порядку	Розстав числа від 1 до 15 по порядку
+Stack the falling pieces, clear lines	Dėk krentančias figūras, valyk eilutes	Krauj krītošās figūras, tīri rindas	Układaj spadające klocki, czyść rzędy	Staple fallende Teile, räume Reihen	Складывай падающие фигуры, очищай линии	Складай падаючі фігури, очищай лінії
+Eat the red dots, avoid walls and yourself	Valgyk raudonus taškus, venk sienų ir savęs	Ēd sarkanos punktus, izvairies no sienām un sevis	Jedz czerwone kropki, unikaj ścian i siebie	Iss die roten Punkte, meide Wände und dich selbst	Ешь красные точки, избегай стен и себя	Їж червоні точки, уникай стін і себе
+Open every cell without a mine	Atverk visus langelius be minų	Atver visas šūnas bez mīnām	Otwórz wszystkie pola bez min	Öffne alle Felder ohne Mine	Открой все клетки без мин	Відкрий усі клітинки без мін
+New game	Naujas žaidimas	Jauna spēle	Nowa gra	Neues Spiel	Новая игра	Нова гра
+Flag mode	Vėliavų režimas	Karogu režīms	Tryb flag	Flaggen-Modus	Режим флагов	Режим прапорців
+Score: {}	Taškai: {}	Punkti: {}	Wynik: {}	Punkte: {}	Счёт: {}	Рахунок: {}
+Best: {}	Rekordas: {}	Labākais: {}	Najlepszy: {}	Bestwert: {}	Рекорд: {}	Рекорд: {}
+Best: {} moves	Rekordas: {} ėjimų	Labākais: {} gājieni	Najlepszy: {} ruchów	Bestwert: {} Züge	Рекорд: {} ходов	Рекорд: {} ходів
+Wins: {}	Laimėjimai: {}	Uzvaras: {}	Wygrane: {}	Siege: {}	Победы: {}	Перемоги: {}
+Moves: {}	Ėjimai: {}	Gājieni: {}	Ruchy: {}	Züge: {}	Ходы: {}	Ходи: {}
+Solved in {} moves!	Išspręsta per {} ėjimų!	Atrisināts {} gājienos!	Rozwiązane w {} ruchach!	Gelöst in {} Zügen!	Решено за {} ходов!	Розв'язано за {} ходів!
+Game over	Žaidimas baigtas	Spēle beigusies	Koniec gry	Spiel vorbei	Игра окончена	Гру закінчено
+You reached 2048!	Pasiekei 2048!	Tu sasniedzi 2048!	Osiągnięto 2048!	2048 erreicht!	Ты добрался до 2048!	Ти дійшов до 2048!
+You win!	Laimėjai!	Tu uzvarēji!	Wygrana!	Gewonnen!	Победа!	Перемога!
+Tap a tile next to the empty space	Bakstelėk skaičių šalia tuščio langelio	Pieskaries skaitlim blakus tukšajam laukumam	Dotknij kafelka obok pustego pola	Tippe auf eine Zahl neben dem leeren Feld	Нажми на число рядом с пустой клеткой	Натисни на число поруч з порожньою клітинкою
+Next:	Kita:	Nākamā:	Następny:	Nächster:	Следующая:	Наступна:
+Lines: {}	Eilutės: {}	Rindas: {}	Rzędy: {}	Reihen: {}	Линии: {}	Лінії: {}
+Level: {}	Lygis: {}	Līmenis: {}	Poziom: {}	Level: {}	Уровень: {}	Рівень: {}
+Flags left: {}	Liko vėliavų: {}	Atlikuši karogi: {}	Pozostało flag: {}	Flaggen übrig: {}	Осталось флагов: {}	Залишилось прапорців: {}
+Programmer	Programuotojas	Programmētājs	Programista	Programmierer	Программист	Програміст
+Formula sheet	Formulių konspektas	Formulu konspekts	Ściąga z wzorów	Formelsammlung	Шпаргалка формул	Шпаргалка формул
+Custom color	Pasirinktinė spalva	Pielāgota krāsa	Własny kolor	Eigene Farbe	Свой цвет	Власний колір
+Custom	Pasirinktinis	Pielāgots	Własny	Eigen	Свой	Власний
+Black (AMOLED)	Juoda (AMOLED)	Melna (AMOLED)	Czarny (AMOLED)	Schwarz (AMOLED)	Чёрная (AMOLED)	Чорна (AMOLED)
+Accent color as #RRGGBB (for example #1E6FD9)	Akcento spalva kaip #RRGGBB (pavyzdžiui #1E6FD9)	Akcenta krāsa kā #RRGGBB (piemēram #1E6FD9)	Kolor akcentu jako #RRGGBB (np. #1E6FD9)	Akzentfarbe als #RRGGBB (z. B. #1E6FD9)	Цвет акцента как #RRGGBB (например #1E6FD9)	Колір акценту як #RRGGBB (наприклад #1E6FD9)
+Use six hex digits, for example #1E6FD9	Naudok šešis šešioliktainius skaitmenis, pvz. #1E6FD9	Izmanto sešus hex ciparus, piemēram #1E6FD9	Użyj sześciu cyfr szesnastkowych, np. #1E6FD9	Sechs Hex-Ziffern verwenden, z. B. #1E6FD9	Используй шесть hex-цифр, например #1E6FD9	Використай шість hex-цифр, наприклад #1E6FD9
+Functions	Funkcijos	Funkcijas	Funkcje	Funktionen	Функции	Функції
+Up to 3 functions of x, one per line	Iki 3 funkcijų su x, po vieną eilutėje	Līdz 3 funkcijām ar x, pa vienai rindā	Do 3 funkcji od x, po jednej w wierszu	Bis zu 3 Funktionen von x, eine pro Zeile	До 3 функций от x, по одной в строке	До 3 функцій від x, по одній у рядку
+No function of x found. Example: x^2 - 2x - 3	Funkcija su x nerasta. Pavyzdys: x^2 - 2x - 3	Funkcija ar x nav atrasta. Piemērs: x^2 - 2x - 3	Nie znaleziono funkcji od x. Przykład: x^2 - 2x - 3	Keine Funktion von x gefunden. Beispiel: x^2 - 2x - 3	Функция от x не найдена. Пример: x^2 - 2x - 3	Функцію від x не знайдено. Приклад: x^2 - 2x - 3
+Intersections	Susikirtimo taškai	Krustpunkti	Punkty przecięcia	Schnittpunkte	Точки пересечения	Точки перетину
+Type an expression with x in the calculator (e.g. x² − 2x − 3), then open Graph. Or tap Functions to draw up to three functions at once.	Įvesk reiškinį su x skaičiuotuve (pvz. x² − 2x − 3) ir atverk grafiką. Arba spausk Funkcijos ir brėšk iki trijų funkcijų vienu metu.	Ievadi izteiksmi ar x kalkulatorā (piem. x² − 2x − 3) un atver grafiku. Vai pieskaries Funkcijas, lai zīmētu līdz trim funkcijām.	Wpisz wyrażenie z x w kalkulatorze (np. x² − 2x − 3) i otwórz Wykres. Albo dotknij Funkcje, by narysować do trzech funkcji naraz.	Gib im Rechner einen Ausdruck mit x ein (z. B. x² − 2x − 3) und öffne den Graphen. Oder tippe auf Funktionen, um bis zu drei Funktionen zu zeichnen.	Введи выражение с x в калькуляторе (например x² − 2x − 3) и открой график. Или нажми Функции, чтобы построить до трёх функций сразу.	Введи вираз із x у калькуляторі (наприклад x² − 2x − 3) і відкрий графік. Або натисни Функції, щоб накреслити до трьох функцій одночасно.
+Detailed steps	Išsamūs sprendimo žingsniai	Detalizēti soļi	Szczegółowe kroki	Ausführliche Schritte	Подробные шаги	Докладні кроки
+Grades (weighted)	Pažymiai (svertiniai)	Atzīmes (svērtās)	Oceny (ważone)	Noten (gewichtet)	Оценки (взвешенные)	Оцінки (зважені)
+Grade	Pažymys	Atzīme	Ocena	Note	Оценка	Оцінка
+Weight (credits)	Svoris (kreditai)	Svars (kredīti)	Waga (kredyty)	Gewicht (Credits)	Вес (кредиты)	Вага (кредити)
+Add grades with their weights: fill Grade and Weight, then +.	Įvesk pažymius su svoriais: užpildyk Pažymys ir Svoris, tada +.	Pievieno atzīmes ar svariem: aizpildi Atzīme un Svars, tad +.	Dodaj oceny z wagami: wypełnij Ocena i Waga, potem +.	Noten mit Gewichten eingeben: Note und Gewicht ausfüllen, dann +.	Добавь оценки с весами: заполни Оценка и Вес, затем +.	Додай оцінки з вагами: заповни Оцінка і Вага, потім +.
+Weighted average	Svertinis vidurkis	Svērtais vidējais	Średnia ważona	Gewichteter Schnitt	Взвешенное среднее	Зважене середнє
+Grades	Pažymiai	Atzīmes	Oceny	Noten	Оценки	Оцінки
+Lowest	Žemiausias	Zemākā	Najniższa	Niedrigste	Низшая	Найнижча
+Highest	Aukščiausias	Augstākā	Najwyższa	Höchste	Высшая	Найвища
+Quiz	Viktorina	Viktorīna	Quiz	Quiz	Викторина	Вікторина
+My formulas	Mano formulės	Manas formulas	Moje wzory	Meine Formeln	Мои формулы	Мої формули
+Statistics charts	Statistikos diagramos	Statistikas diagrammas	Wykresy statystyczne	Statistik-Diagramme	Диаграммы статистики	Діаграми статистики
+Arithmetic	Aritmetika	Aritmētika	Arytmetyka	Arithmetik	Арифметика	Арифметика
+Equations	Lygtys	Vienādojumi	Równania	Gleichungen	Уравнения	Рівняння
+Chemistry	Chemija	Ķīmija	Chemia	Chemie	Химия	Хімія
+Physics	Fizika	Fizika	Fizyka	Physik	Физика	Фізика
+Geometry	Geometrija	Ģeometrija	Geometria	Geometrie	Геометрия	Геометрія
+Score: {} / {}	Taškai: {} / {}	Punkti: {} / {}	Wynik: {} / {}	Punkte: {} / {}	Счёт: {} / {}	Рахунок: {} / {}
+Best: {} / 10	Rekordas: {} / 10	Labākais: {} / 10	Najlepszy: {} / 10	Bestwert: {} / 10	Рекорд: {} / 10	Рекорд: {} / 10
+Best streak: {}	Geriausia serija: {}	Labākā sērija: {}	Najlepsza seria: {}	Beste Serie: {}	Лучшая серия: {}	Краща серія: {}
+Round complete!	Raundas baigtas!	Raunds beigts!	Runda zakończona!	Runde geschafft!	Раунд завершён!	Раунд завершено!
+New round	Naujas raundas	Jauns raunds	Nowa runda	Neue Runde	Новый раунд	Новий раунд
+Next question	Kitas klausimas	Nākamais jautājums	Następne pytanie	Nächste Frage	Следующий вопрос	Наступне питання
+Correct!	Teisingai!	Pareizi!	Dobrze!	Richtig!	Верно!	Правильно!
+Not quite.	Ne visai.	Ne gluži.	Nie do końca.	Nicht ganz.	Не совсем.	Не зовсім.
+Add the two numbers	Sudėk abu skaičius	Saskaiti abus skaitļus	Dodaj obie liczby	Addiere die beiden Zahlen	Сложи два числа	Додай два числа
+Multiply the two numbers	Padaugink abu skaičius	Reizini abus skaitļus	Pomnóż obie liczby	Multipliziere die beiden Zahlen	Умножь два числа	Помнож два числа
+Which element has the symbol {}?	Kurio elemento simbolis {}?	Kuram elementam ir simbols {}?	Który pierwiastek ma symbol {}?	Welches Element hat das Symbol {}?	У какого элемента символ {}?	Який елемент має символ {}?
+atomic number	atominis numeris	atominis numurs	liczba atomowa	Ordnungszahl	атомный номер	атомний номер
+A car covers {} m in {} s. Speed v = s/t (m/s)?	Automobilis nuvažiuoja {} m per {} s. Greitis v = s/t (m/s)?	Auto nobrauc {} m {} s laikā. Ātrums v = s/t (m/s)?	Samochód przejeżdża {} m w {} s. Prędkość v = s/t (m/s)?	Ein Auto fährt {} m in {} s. Geschwindigkeit v = s/t (m/s)?	Машина проезжает {} m за {} s. Скорость v = s/t (m/s)?	Авто проїжджає {} m за {} s. Швидкість v = s/t (m/s)?
+v = s/t = {}/{} = {}	v = s/t = {}/{} = {}	v = s/t = {}/{} = {}	v = s/t = {}/{} = {}	v = s/t = {}/{} = {}	v = s/t = {}/{} = {}	v = s/t = {}/{} = {}
+Force on a {} kg mass with acceleration {} m/s²: F = ma (N)?	Jėga, veikianti {} kg masę su pagreičiu {} m/s²: F = ma (N)?	Spēks uz {} kg masu ar paātrinājumu {} m/s²: F = ma (N)?	Siła na masę {} kg z przyspieszeniem {} m/s²: F = ma (N)?	Kraft auf {} kg mit Beschleunigung {} m/s²: F = ma (N)?	Сила на массу {} kg с ускорением {} m/s²: F = ma (N)?	Сила на масу {} kg з прискоренням {} m/s²: F = ma (N)?
+F = ma = {} × {} = {}	F = ma = {} × {} = {}	F = ma = {} × {} = {}	F = ma = {} × {} = {}	F = ma = {} × {} = {}	F = ma = {} × {} = {}	F = ma = {} × {} = {}
+Kinetic energy of {} kg moving at {} m/s: E = mv²/2 (J)?	{} kg kūno, judančio {} m/s, kinetinė energija: E = mv²/2 (J)?	{} kg ķermeņa kinētiskā enerģija pie {} m/s: E = mv²/2 (J)?	Energia kinetyczna {} kg przy {} m/s: E = mv²/2 (J)?	Kinetische Energie von {} kg bei {} m/s: E = mv²/2 (J)?	Кинетическая энергия {} kg при {} m/s: E = mv²/2 (J)?	Кінетична енергія {} kg при {} m/s: E = mv²/2 (J)?
+E = {} × {}² / 2 = {}	E = {} × {}² / 2 = {}	E = {} × {}² / 2 = {}	E = {} × {}² / 2 = {}	E = {} × {}² / 2 = {}	E = {} × {}² / 2 = {}	E = {} × {}² / 2 = {}
+Work done by {} N over {} m: A = Fs (J)?	{} N jėgos darbas per {} m: A = Fs (J)?	{} N spēka darbs {} m ceļā: A = Fs (J)?	Praca siły {} N na {} m: A = Fs (J)?	Arbeit von {} N über {} m: A = Fs (J)?	Работа силы {} N на {} m: A = Fs (J)?	Робота сили {} N на {} m: A = Fs (J)?
+A = Fs = {} × {} = {}	A = Fs = {} × {} = {}	A = Fs = {} × {} = {}	A = Fs = {} × {} = {}	A = Fs = {} × {} = {}	A = Fs = {} × {} = {}	A = Fs = {} × {} = {}
+Weight of {} kg: F = mg, g ≈ 10 m/s² (N)?	{} kg kūno svoris: F = mg, g ≈ 10 m/s² (N)?	{} kg ķermeņa svars: F = mg, g ≈ 10 m/s² (N)?	Ciężar {} kg: F = mg, g ≈ 10 m/s² (N)?	Gewicht von {} kg: F = mg, g ≈ 10 m/s² (N)?	Вес {} kg: F = mg, g ≈ 10 m/s² (N)?	Вага {} kg: F = mg, g ≈ 10 m/s² (N)?
+F = mg = {} × 10 = {}	F = mg = {} × 10 = {}	F = mg = {} × 10 = {}	F = mg = {} × 10 = {}	F = mg = {} × 10 = {}	F = mg = {} × 10 = {}	F = mg = {} × 10 = {}
+Rectangle {} by {}: area?	Stačiakampio kraštinės {} ir {}: plotas?	Taisnstūris {} un {}: laukums?	Prostokąt {} na {}: pole?	Rechteck {} mal {}: Fläche?	Прямоугольник {} на {}: площадь?	Прямокутник {} на {}: площа?
+S = ab = {} × {} = {}	S = ab = {} × {} = {}	S = ab = {} × {} = {}	S = ab = {} × {} = {}	S = ab = {} × {} = {}	S = ab = {} × {} = {}	S = ab = {} × {} = {}
+Triangle with base {} and height {}: area?	Trikampio pagrindas {}, aukštinė {}: plotas?	Trīstūra pamats {} un augstums {}: laukums?	Trójkąt o podstawie {} i wysokości {}: pole?	Dreieck mit Basis {} und Höhe {}: Fläche?	Треугольник с основанием {} и высотой {}: площадь?	Трикутник з основою {} і висотою {}: площа?
+S = ah/2 = {} × {} / 2 = {}	S = ah/2 = {} × {} / 2 = {}	S = ah/2 = {} × {} / 2 = {}	S = ah/2 = {} × {} / 2 = {}	S = ah/2 = {} × {} / 2 = {}	S = ah/2 = {} × {} / 2 = {}	S = ah/2 = {} × {} / 2 = {}
+Right triangle legs {} and {}: hypotenuse?	Statusis trikampis, statiniai {} ir {}: įžambinė?	Taisnleņķa trīstūra katetes {} un {}: hipotenūza?	Trójkąt prostokątny, przyprostokątne {} i {}: przeciwprostokątna?	Rechtwinkliges Dreieck, Katheten {} und {}: Hypotenuse?	Прямоугольный треугольник, катеты {} и {}: гипотенуза?	Прямокутний трикутник, катети {} і {}: гіпотенуза?
+c = √({}² + {}²) = {}	c = √({}² + {}²) = {}	c = √({}² + {}²) = {}	c = √({}² + {}²) = {}	c = √({}² + {}²) = {}	c = √({}² + {}²) = {}	c = √({}² + {}²) = {}
+Triangle angles {}° and {}°: the third angle?	Trikampio kampai {}° ir {}°: trečiasis kampas?	Trīstūra leņķi {}° un {}°: trešais leņķis?	Kąty trójkąta {}° i {}°: trzeci kąt?	Dreieckswinkel {}° und {}°: der dritte Winkel?	Углы треугольника {}° и {}°: третий угол?	Кути трикутника {}° і {}°: третій кут?
+180° − {}° − {}° = {}°	180° − {}° − {}° = {}°	180° − {}° − {}° = {}°	180° − {}° − {}° = {}°	180° − {}° − {}° = {}°	180° − {}° − {}° = {}°	180° − {}° − {}° = {}°
+Circle radius {}: circumference C = 2πr, π ≈ 3.14 (in 0.1 units)?	Apskritimo spindulys {}: ilgis C = 2πr, π ≈ 3.14 (0,1 vieneto tikslumu)?	Ripas rādiuss {}: garums C = 2πr, π ≈ 3.14 (0,1 vienībās)?	Promień koła {}: obwód C = 2πr, π ≈ 3.14 (w 0,1 jednostki)?	Kreisradius {}: Umfang C = 2πr, π ≈ 3.14 (in 0,1-Einheiten)?	Радиус круга {}: длина C = 2πr, π ≈ 3.14 (в 0,1 единицы)?	Радіус кола {}: довжина C = 2πr, π ≈ 3.14 (в 0,1 одиниці)?
+C = 2πr = 2 × 3.14 × {} = {}	C = 2πr = 2 × 3.14 × {} = {}	C = 2πr = 2 × 3.14 × {} = {}	C = 2πr = 2 × 3.14 × {} = {}	C = 2πr = 2 × 3.14 × {} = {}	C = 2πr = 2 × 3.14 × {} = {}	C = 2πr = 2 × 3.14 × {} = {}
+{}x + {} = {}. Find x.	{}x + {} = {}. Rask x.	{}x + {} = {}. Atrodi x.	{}x + {} = {}. Znajdź x.	{}x + {} = {}. Finde x.	{}x + {} = {}. Найди x.	{}x + {} = {}. Знайди x.
+Subtract {}, then divide by {}: x = {}	Atimk {}, tada dalink iš {}: x = {}	Atņem {}, tad dali ar {}: x = {}	Odejmij {}, potem podziel przez {}: x = {}	Subtrahiere {}, dann teile durch {}: x = {}	Вычти {}, затем раздели на {}: x = {}	Відніми {}, потім поділи на {}: x = {}
+Share calculation as image	Dalintis skaičiavimu kaip paveikslu	Dalīties ar aprēķinu kā attēlu	Udostępnij obliczenie jako obraz	Rechnung als Bild teilen	Поделиться вычислением картинкой	Поділитися обчисленням картинкою
+Add formula	Pridėti formulę	Pievienot formulu	Dodaj wzór	Formel hinzufügen	Добавить формулу	Додати формулу
+Enter data	Įvesti duomenis	Ievadīt datus	Wprowadź dane	Daten eingeben	Ввести данные	Ввести дані
+Chart	Diagrama	Diagramma	Wykres	Diagramm	Диаграмма	Діаграма
+Pie	Skritulinė	Ripveida	Kołowy	Kuchen	Круговая	Кругова
+Bars	Stulpelinė	Joslveida	Słupkowy	Balken	Столбчатая	Стовпчикова
+Pie charts need nonnegative values and a positive total. Use bars for negatives.	Skritulinėms diagramoms reikia neneigiamų reikšmių ir teigiamos sumos. Neigiamoms reikšmėms naudok stulpelines.	Ripveida diagrammām vajag nenegatīvas vērtības un pozitīvu summu. Negatīvām vērtībām izmanto joslveida.	Wykresy kołowe wymagają nieujemnych wartości i dodatniej sumy. Dla ujemnych użyj słupkowego.	Kuchendiagramme brauchen nichtnegative Werte und eine positive Summe. Für Negative Balken nutzen.	Круговые диаграммы требуют неотрицательных значений и положительной суммы. Для отрицательных используй столбчатые.	Кругові діаграми потребують невід'ємних значень і додатної суми. Для від'ємних використовуй стовпчикові.
+Enter up to 60 numbers to plot. For example: 4 8 6 10.	Įvesk iki 60 skaičių diagramai. Pavyzdžiui: 4 8 6 10.	Ievadi līdz 60 skaitļiem diagrammai. Piemēram: 4 8 6 10.	Wpisz do 60 liczb do wykresu. Na przykład: 4 8 6 10.	Bis zu 60 Zahlen eingeben. Zum Beispiel: 4 8 6 10.	Введи до 60 чисел для графика. Например: 4 8 6 10.	Введи до 60 чисел для графіка. Наприклад: 4 8 6 10.
+Drag across the chart. Shows the nearest recorded sample, not every trade.	Tempk per diagramą. Rodomas artimiausias užfiksuotas taškas, ne kiekvienas sandoris.	Velc pa diagrammu. Rāda tuvāko ierakstīto paraugu, ne katru darījumu.	Przeciągnij po wykresie. Pokazuje najbliższą zarejestrowaną próbkę, nie każdą transakcję.	Über das Diagramm ziehen. Zeigt den nächsten aufgezeichneten Wert, nicht jeden Handel.	Тяни по графику. Показывается ближайшая записанная точка, не каждая сделка.	Тягни по графіку. Показується найближча записана точка, не кожна угода.
+Create formulas with named variables: width*height, mass*speed^2/2. Use explicit * for multiplication. sin, cos, sqrt and pi are supported. Angles use DEG.	Kurk formules su kintamaisiais: width*height, mass*speed^2/2. Daugybai rašyk *. Veikia sin, cos, sqrt ir pi. Kampai matuojami DEG.	Veido formulas ar mainīgajiem: width*height, mass*speed^2/2. Reizināšanai raksti *. Darbojas sin, cos, sqrt un pi. Leņķi izmanto DEG.	Twórz wzory ze zmiennymi: width*height, mass*speed^2/2. Mnożenie zapisuj *. Działają sin, cos, sqrt i pi. Kąty w DEG.	Formeln mit Variablen erstellen: width*height, mass*speed^2/2. Für Multiplikation * schreiben. sin, cos, sqrt und pi werden unterstützt. Winkel in DEG.	Создавай формулы с переменными: width*height, mass*speed^2/2. Для умножения пиши *. Работают sin, cos, sqrt и pi. Углы в DEG.	Створюй формули зі змінними: width*height, mass*speed^2/2. Для множення пиши *. Працюють sin, cos, sqrt і pi. Кути в DEG.
+Show exact fraction result	Rodyti tikslią trupmeną	Rādīt precīzu daļu	Pokaż dokładny ułamek	Exakten Bruch anzeigen	Показывать точную дробь	Показувати точний дріб
