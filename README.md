@@ -1,6 +1,6 @@
 # Android Calculator (Rust)
 
-Rust rewrite of the original Java calculator (version 2.7.0.0). The app itself is Rust: it runs as an
+Rust rewrite of the original Java calculator (version 2.8.0.0). The app itself is Rust: it runs as an
 Android `NativeActivity` (`android-activity` crate) and draws the UI itself. A small optional Java add-on
 (`android/src/main/java`) adds what needs Android classes: home screen widget, quick settings tile,
 floating calculator, voice input, text-to-speech/TalkBack announcements, background update check and
@@ -72,6 +72,13 @@ The Markets screen shows informational cryptocurrency and stock quotes on demand
 Configure these repository Actions secrets before publishing:
 RELEASE_KEYSTORE_BASE64, RELEASE_KEYSTORE_PASSWORD, RELEASE_KEY_ALIAS.
 Do not commit a production or release keystore to the repository.
+
+## 2.8.0.0
+
+Reliability fixes (programmer mode and complex numbers): oversized input no longer wraps into another number,
+unsupported bases are rejected, `5 AND 1 NOT =` uses the inverted operand, a division-by-zero error no longer queues
+the next operation, zero and negative complex powers are handled, integer complex powers use fast exponentiation (up to 64).
+11 new regression tests.
 
 ## 2.7.0.0
 
