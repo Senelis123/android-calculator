@@ -19,12 +19,24 @@ impl C {
     fn ln(self) -> Result<C, CalcError> { if self.abs() == 0.0 { return Err(CalcError::Domain); } Ok(C { re: self.abs().ln(), im: self.im.atan2(self.re) }) }
     fn exp(self) -> C { let m = self.re.exp(); C { re: m * self.im.cos(), im: m * self.im.sin() } }
     fn pow(self, e: C) -> Result<C, CalcError> {
+        if self.re == 0.0 && self.im == 0.0 {
+            // Preserve 0^0 = 1, but never silently accept undefined powers.
+            if e.im != 0.0 || !e.re.is_finite() { return Err(CalcError::Domain); }
+            if e.re < 0.0 { return Err(CalcError::DivZero); }
+            return Ok(C::r(if e.re == 0.0 { 1.0 } else { 0.0 }));
+        }
         if e.im == 0.0 && e.re.fract() == 0.0 && e.re.abs() <= 64.0 {
             let mut acc = C::r(1.0);
-            for _ in 0..e.re.abs() as u32 { acc = acc.mul(self); }
-            return if e.re < 0.0 { C::r(1.0).div(acc) } else { Ok(acc) };
+            // Invert first for negative powers, avoiding overflow in a positive power.
+            let mut base = if e.re < 0.0 { C::r(1.0).div(self)? } else { self };
+            let mut n = e.re.abs() as u32;
+            while n > 0 {
+                if n & 1 != 0 { acc = acc.mul(base); }
+                n >>= 1;
+                if n > 0 { base = base.mul(base); }
+            }
+            return Ok(acc);
         }
-        if self.abs() == 0.0 { return Ok(C::r(0.0)); }
         Ok(e.mul(self.ln()?).exp())
     }
     fn sqrt(self) -> C { let m = self.abs(); let re = ((m + self.re) / 2.0).sqrt(); let im = ((m - self.re) / 2.0).sqrt(); C { re, im: if self.im < 0.0 { -im } else { im } } }
@@ -131,5 +143,51 @@ mod tests {
         assert_eq!(eval(&t, true, 0.0).unwrap().text(), "−1");
         let t = vec![Tok::Func("√"), Tok::Op('−'), n("4"), Tok::RParen, Tok::Op('+'), Tok::I, Tok::Op('×'), n("0")];
         assert_eq!(eval(&t, true, 0.0).unwrap().text(), "2i");
+    }
+}
+
+
+#[cfg(test)]
+mod reliability_regression_tests {
+    use super::*;
+
+    #[test]
+    fn zero_powers_have_explicit_domains() {
+        let z = C::r(0.0);
+        assert_eq!(z.pow(C::r(0.0)), Ok(C::r(1.0)));
+        assert_eq!(z.pow(C::r(0.5)), Ok(z));
+        for e in [-0.5, -1.0, -65.0, -100.0] {
+            assert_eq!(z.pow(C::r(e)), Err(CalcError::DivZero));
+        }
+        assert_eq!(z.pow(C { re: 1.0, im: 1.0 }), Err(CalcError::Domain));
+    }
+
+    #[test]
+    fn integer_powers_match_repeated_multiplication() {
+        let z = C { re: 0.75, im: 0.25 };
+        let mut expected = C::r(1.0);
+        for n in 0..=64 {
+            let got = z.pow(C::r(n as f64)).unwrap();
+            let tol = 1e-12 * expected.abs().max(1e-100);
+            assert!((got.re - expected.re).abs() <= tol);
+            assert!((got.im - expected.im).abs() <= tol);
+            expected = expected.mul(z);
+        }
+    }
+
+    #[test]
+    fn negative_power_keeps_representable_small_result() {
+        let got = C::r(1e6).pow(C::r(-52.0)).unwrap();
+        let expected = 1e-312;
+        assert!(got.re > 0.0);
+        assert!(((got.re - expected) / expected).abs() < 1e-9);
+        assert_eq!(got.im, 0.0);
+    }
+
+    #[test]
+    fn negative_powers_of_i() {
+        let i = C { re: 0.0, im: 1.0 };
+        assert_eq!(i.pow(C::r(-1.0)), Ok(C { re: 0.0, im: -1.0 }));
+        assert_eq!(i.pow(C::r(-2.0)), Ok(C::r(-1.0)));
     }
 }
