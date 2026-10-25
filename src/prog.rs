@@ -20,6 +20,8 @@ impl Default for Prog {
 }
 
 pub fn fmt(mut v: u64, base: u8) -> String {
+    // Reject unsupported bases before division or digit-table indexing.
+    if !matches!(base, 2 | 8 | 10 | 16) { return String::new(); }
     if v == 0 { return "0".into(); }
     let digits = b"0123456789ABCDEF";
     let mut out = vec![];
@@ -31,12 +33,13 @@ pub fn fmt(mut v: u64, base: u8) -> String {
 }
 
 pub fn parse(s: &str, base: u8) -> Option<u64> {
-    if s.is_empty() { return None; }
+    if s.is_empty() || !matches!(base, 2 | 8 | 10 | 16) { return None; }
     let mut v: u64 = 0;
     for c in s.chars() {
         let d = c.to_digit(16)? as u8;
         if d >= base { return None; }
-        v = v.wrapping_mul(base as u64).wrapping_add(d as u64);
+        // Input must fit u64; arithmetic operations intentionally still wrap.
+        v = v.checked_mul(base as u64)?.checked_add(d as u64)?;
     }
     Some(v)
 }
@@ -45,6 +48,7 @@ impl Prog {
     pub fn value(&self) -> u64 { parse(&self.text, self.base).unwrap_or(0) }
 
     pub fn set_base(&mut self, base: u8) {
+        if !matches!(base, 2 | 8 | 10 | 16) { return; }
         let v = self.value();
         self.base = base;
         self.text = fmt(v, base);
@@ -73,6 +77,7 @@ impl Prog {
                 };
                 if let Some(pending) = self.op.take() {
                     if !self.fresh { self.apply_pending(pending); }
+                    if self.error { self.fresh = true; return; }
                 }
                 self.acc = self.value();
                 self.op = Some(op);
@@ -87,10 +92,14 @@ impl Prog {
             "NOT" => {
                 let v = !self.value();
                 self.text = fmt(v, self.base);
-                self.fresh = true;
+                // A transformed right-hand operand must still be consumed by '='.
+                self.fresh = self.op.is_none();
             }
             d => {
-                let c = match d { "A" | "B" | "C" | "D" | "E" | "F" => d.chars().next().unwrap(), _ => d.chars().next().unwrap_or('?') };
+                let mut chars = d.chars();
+                let Some(c) = chars.next() else { return; };
+                if chars.next().is_some() { return; }
+                let c = c.to_ascii_uppercase();
                 let Some(dv) = c.to_digit(16) else { return; };
                 if dv >= self.base as u32 { return; }
                 if self.fresh {
@@ -101,6 +110,8 @@ impl Prog {
                     self.text = c.to_string();
                 } else if self.text.len() < self.digit_limit() {
                     self.text.push(c);
+                    // Decimal/octal digit counts alone do not guarantee u64 range.
+                    if parse(&self.text, self.base).is_none() { self.text.pop(); }
                 }
             }
         }
@@ -181,5 +192,87 @@ mod tests {
         assert_eq!(p.text, "42");
         for k in ["AC", "1", "÷", "0", "="] { p.key(k); }
         assert!(p.error);
+    }
+}
+
+
+#[cfg(test)]
+mod reliability_regression_tests {
+    use super::*;
+
+    #[test]
+    fn rejects_overflow_in_every_base() {
+        for base in [2, 8, 10, 16] {
+            let max = fmt(u64::MAX, base);
+            assert_eq!(parse(&max, base), Some(u64::MAX));
+            assert_eq!(parse(&(max + "0"), base), None);
+        }
+        assert_eq!(parse("18446744073709551616", 10), None);
+        assert_eq!(parse("2000000000000000000000", 8), None);
+    }
+
+    #[test]
+    fn entry_does_not_wrap_and_stays_editable() {
+        let mut p = Prog::default();
+        for c in "1844674407370955161".chars() { p.key(&c.to_string()); }
+        p.key("6"); // u64::MAX + 1: refuse this digit, keep the prior entry.
+        assert_eq!(p.text, "1844674407370955161");
+        p.key("5");
+        assert_eq!(p.value(), u64::MAX);
+        p.key("⌫");
+        assert_eq!(p.text, "1844674407370955161");
+    }
+
+    #[test]
+    fn invalid_bases_do_not_change_state() {
+        let mut p = Prog::default();
+        p.key("7");
+        for base in [0, 1, 3, 17, 255] {
+            p.set_base(base);
+            assert_eq!((p.base, p.text.as_str()), (10, "7"));
+            assert_eq!(parse("7", base), None);
+            assert_eq!(fmt(7, base), "");
+        }
+    }
+
+    #[test]
+    fn ignores_multicharacter_keys() {
+        let mut p = Prog::default();
+        p.key("12");
+        p.key("");
+        assert_eq!(p.text, "0");
+        p.set_base(16);
+        p.key("face");
+        assert_eq!(p.text, "0");
+        p.key("f");
+        assert_eq!(p.text, "F");
+    }
+
+    #[test]
+    fn not_on_rhs_is_used_by_equals() {
+        let mut p = Prog::default();
+        for k in ["5", "AND", "1", "NOT", "="] { p.key(k); }
+        assert_eq!(p.value(), 4);
+    }
+
+    #[test]
+    fn division_error_does_not_queue_another_operation() {
+        let mut p = Prog::default();
+        for k in ["8", "÷", "0", "+"] { p.key(k); }
+        assert!(p.error);
+        assert_eq!(p.op, None);
+        p.key("2");
+        p.key("=");
+        assert!(!p.error);
+        assert_eq!(p.value(), 2);
+    }
+
+    #[test]
+    fn arithmetic_wrap_policy_is_preserved() {
+        let mut p = Prog::default();
+        for c in u64::MAX.to_string().chars() { p.key(&c.to_string()); }
+        for k in ["+", "1", "="] { p.key(k); }
+        assert_eq!(p.value(), 0);
+        assert!(!p.error);
     }
 }
